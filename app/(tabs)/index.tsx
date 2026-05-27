@@ -102,7 +102,7 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Welcome back Charith</Text>
+            <Text style={styles.greeting}>Welcome back</Text>
             <Text style={styles.monthLabel}>{getMonthDisplayName(currentMonth)}</Text>
           </View>
         </View>
