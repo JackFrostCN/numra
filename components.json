@@ -1,0 +1,7 @@
+{
+  "$schema": "https://rnr-docs.vercel.app/schema.json",
+  "rnr": {
+    "utils": "@/lib/utils",
+    "components": "@/components"
+  }
+}
