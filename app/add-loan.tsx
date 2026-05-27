@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Platform, KeyboardAvoidingView } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
 import { addLoan } from '@/db/queries';
@@ -14,6 +15,20 @@ export default function AddLoanModal() {
   const [amount, setAmount] = useState('');
   const [person, setPerson] = useState('');
   const [date, setDate] = useState(getTodayISO());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirmDate = (selectedDate: Date) => {
+    setDate(selectedDate.toISOString().split('T')[0]);
+    hideDatePicker();
+  };
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !person.trim()) return;
@@ -29,8 +44,13 @@ export default function AddLoanModal() {
   };
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-      <View style={s.typeToggle}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
+    >
+      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <View style={s.typeToggle}>
         <Pressable style={[s.toggleBtn, type === 'borrowed' && s.borrowedActive]} onPress={() => setType('borrowed')}>
           <Text style={[s.toggleTxt, type === 'borrowed' && s.activeTxt]}>I Owe</Text>
         </Pressable>
@@ -59,18 +79,24 @@ export default function AddLoanModal() {
         placeholderTextColor={Palette.textMuted}
       />
 
-      <Text style={s.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={s.input}
-        value={date}
-        onChangeText={setDate}
-        placeholderTextColor={Palette.textMuted}
+      <Text style={s.label}>Date</Text>
+      <Pressable style={s.dateInput} onPress={showDatePicker}>
+        <Text style={s.dateText}>{date}</Text>
+      </Pressable>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirmDate}
+        onCancel={hideDatePicker}
+        date={new Date(date)}
       />
 
-      <Pressable style={s.saveBtn} onPress={handleSave}>
-        <Text style={s.saveTxt}>Save Loan</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={s.saveBtn} onPress={handleSave}>
+          <Text style={s.saveTxt}>Save Loan</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -86,6 +112,8 @@ const s = StyleSheet.create({
   label: { fontSize: 13, color: Palette.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
   inputBig: { fontSize: 36, fontWeight: '700', color: Palette.textPrimary, borderBottomWidth: 1, borderBottomColor: Palette.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
   input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
+  dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
+  dateText: { color: Palette.textPrimary, fontSize: 16 },
   saveBtn: { backgroundColor: Palette.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
   saveTxt: { color: Palette.white, fontSize: 16, fontWeight: '600' },
 });

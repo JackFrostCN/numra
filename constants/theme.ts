@@ -24,34 +24,34 @@ export const Palette = {
   textMuted: '#64748B',
   textInverse: '#0F172A',
 
-  // Accent — Emerald
-  accent: '#10B981',
-  accentLight: '#34D399',
-  accentDark: '#059669',
-  accentMuted: 'rgba(16, 185, 129, 0.15)',
+  // Accent — Teal
+  accent: '#14B8A6',
+  accentLight: '#5EEAD4',
+  accentDark: '#0D9488',
+  accentMuted: 'rgba(20, 184, 166, 0.15)',
 
-  // Semantic — Financial
-  income: '#10B981',
-  incomeBg: 'rgba(16, 185, 129, 0.12)',
-  expense: '#EF4444',
-  expenseBg: 'rgba(239, 68, 68, 0.12)',
+  // Semantic — Financial (shadcn-inspired muted palette)
+  income: '#14B8A6',
+  incomeBg: 'rgba(20, 184, 166, 0.12)',
+  expense: '#F43F5E',
+  expenseBg: 'rgba(244, 63, 94, 0.12)',
   loan: '#F59E0B',
   loanBg: 'rgba(245, 158, 11, 0.12)',
   bill: '#8B5CF6',
   billBg: 'rgba(139, 92, 246, 0.12)',
 
   // Status
-  success: '#22C55E',
+  success: '#14B8A6',
   warning: '#F59E0B',
-  danger: '#EF4444',
-  info: '#3B82F6',
+  danger: '#F43F5E',
+  info: '#6366F1',
 
-  // Gradients
-  gradientIncome: ['#059669', '#10B981'] as const,
-  gradientExpense: ['#DC2626', '#EF4444'] as const,
-  gradientBalance: ['#1E40AF', '#3B82F6'] as const,
+  // Gradients (shadcn-style muted tones)
+  gradientIncome: ['#0D9488', '#14B8A6'] as const,
+  gradientExpense: ['#E11D48', '#F43F5E'] as const,
+  gradientBalance: ['#4338CA', '#6366F1'] as const,
   gradientCard: ['#141926', '#1C2333'] as const,
-  gradientAccent: ['#059669', '#34D399'] as const,
+  gradientAccent: ['#0D9488', '#5EEAD4'] as const,
 
   // Tab bar
   tabBar: '#0E1322',

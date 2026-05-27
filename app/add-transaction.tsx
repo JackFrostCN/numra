@@ -5,7 +5,8 @@ import { getTodayISO } from '@/utils/helpers';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 export default function AddTransactionModal() {
   const db = useSQLiteContext();
@@ -15,10 +16,28 @@ export default function AddTransactionModal() {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(getTodayISO());
+  const [date, setDate] = useState(new Date().toISOString());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const isExpense = type === 'expense';
   const categories = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirmDate = (selectedDate: Date) => {
+    setDate(selectedDate.toISOString());
+    hideDatePicker();
+  };
+
+  const formattedDisplayDate = new Date(date).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount))) return;
@@ -34,8 +53,13 @@ export default function AddTransactionModal() {
   };
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-      <View style={s.typeToggle}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
+    >
+      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <View style={s.typeToggle}>
         <Pressable
           style={[s.toggleBtn, !isExpense && s.incomeActive]}
           onPress={() => { setType('income'); setCategory(INCOME_CATEGORIES[0]); }}
@@ -75,12 +99,17 @@ export default function AddTransactionModal() {
         ))}
       </View>
 
-      <Text style={s.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput
-        style={s.input}
-        value={date}
-        onChangeText={setDate}
-        placeholderTextColor={Palette.textMuted}
+      <Text style={s.label}>Date & Time</Text>
+      <Pressable style={s.dateInput} onPress={showDatePicker}>
+        <Text style={s.dateText}>{formattedDisplayDate}</Text>
+      </Pressable>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="datetime"
+        onConfirm={handleConfirmDate}
+        onCancel={hideDatePicker}
+        date={new Date(date)}
       />
 
       <Text style={s.label}>Description (Optional)</Text>
@@ -91,10 +120,11 @@ export default function AddTransactionModal() {
         placeholderTextColor={Palette.textMuted}
       />
 
-      <Pressable style={s.saveBtn} onPress={handleSave}>
-        <Text style={s.saveTxt}>Save Transaction</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={s.saveBtn} onPress={handleSave}>
+          <Text style={s.saveTxt}>Save Transaction</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -110,6 +140,8 @@ const s = StyleSheet.create({
   label: { fontSize: 13, color: Palette.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
   inputBig: { fontSize: 36, fontWeight: '700', color: Palette.textPrimary, borderBottomWidth: 1, borderBottomColor: Palette.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
   input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
+  dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
+  dateText: { color: Palette.textPrimary, fontSize: 16 },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: Palette.bgInput, borderWidth: 1, borderColor: Palette.border },
   chipExpense: { backgroundColor: Palette.expense, borderColor: Palette.expense },

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Platform, KeyboardAvoidingView } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
 import { addBill } from '@/db/queries';
@@ -29,8 +29,13 @@ export default function AddBillModal() {
   };
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-      <Text style={s.label}>Bill Name</Text>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
+    >
+      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <Text style={s.label}>Bill Name</Text>
       <TextInput
         style={s.inputBig}
         value={name}
@@ -74,10 +79,11 @@ export default function AddBillModal() {
         ))}
       </View>
 
-      <Pressable style={s.saveBtn} onPress={handleSave}>
-        <Text style={s.saveTxt}>Save Bill</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={s.saveBtn} onPress={handleSave}>
+          <Text style={s.saveTxt}>Save Bill</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

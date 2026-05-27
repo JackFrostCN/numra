@@ -2,7 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
@@ -27,6 +27,14 @@ import {
   getMonthDisplayName,
 } from '@/utils/helpers';
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  if (hour >= 17 && hour < 21) return 'Good Evening';
+  return 'Hello Night Owl, tracking some finance shit?';
+}
+
 export default function DashboardScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
@@ -38,6 +46,19 @@ export default function DashboardScreen() {
   const [totalDebt, setTotalDebt] = useState(0);
   const [budget, setBudget] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const greeting = useMemo(() => getGreeting(), [refreshKey]);
+  const todayDate = useMemo(
+    () =>
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    [refreshKey]
+  );
 
   const currentMonth = getCurrentYearMonth();
 
@@ -84,6 +105,7 @@ export default function DashboardScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    setRefreshKey((k) => k + 1);
     await loadData();
     setRefreshing(false);
   };
@@ -102,8 +124,8 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Welcome back</Text>
-            <Text style={styles.monthLabel}>{getMonthDisplayName(currentMonth)}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
+            <Text style={styles.dateText}>{todayDate}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -305,11 +327,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   greeting: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
     color: Palette.textSecondary,
     marginBottom: 4,
   },
-  monthLabel: {
+  dateText: {
     fontSize: 22,
     fontWeight: '700',
     color: Palette.textPrimary,
