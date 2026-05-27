@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Platform } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useRouter } from 'expo-router';
+import { Palette, Radius, Spacing } from '@/constants/theme';
 import { addTransaction } from '@/db/queries';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
-import { Palette, Spacing, Radius } from '@/constants/theme';
 import { getTodayISO } from '@/utils/helpers';
+import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function AddTransactionModal() {
   const db = useSQLiteContext();
@@ -22,7 +22,7 @@ export default function AddTransactionModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount))) return;
-    
+
     await addTransaction(db, {
       type,
       amount: Number(amount),
@@ -36,18 +36,19 @@ export default function AddTransactionModal() {
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
       <View style={s.typeToggle}>
-        <Pressable 
-          style={[s.toggleBtn, isExpense && s.expenseActive]} 
-          onPress={() => { setType('expense'); setCategory(EXPENSE_CATEGORIES[0]); }}
-        >
-          <Text style={[s.toggleTxt, isExpense && s.activeTxt]}>Expense</Text>
-        </Pressable>
-        <Pressable 
-          style={[s.toggleBtn, !isExpense && s.incomeActive]} 
+        <Pressable
+          style={[s.toggleBtn, !isExpense && s.incomeActive]}
           onPress={() => { setType('income'); setCategory(INCOME_CATEGORIES[0]); }}
         >
           <Text style={[s.toggleTxt, !isExpense && s.activeTxt]}>Income</Text>
         </Pressable>
+        <Pressable
+          style={[s.toggleBtn, isExpense && s.expenseActive]}
+          onPress={() => { setType('expense'); setCategory(EXPENSE_CATEGORIES[0]); }}
+        >
+          <Text style={[s.toggleTxt, isExpense && s.activeTxt]}>Expense</Text>
+        </Pressable>
+
       </View>
 
       <Text style={s.label}>Amount (LKR)</Text>
@@ -64,8 +65,8 @@ export default function AddTransactionModal() {
       <Text style={s.label}>Category</Text>
       <View style={s.chipContainer}>
         {categories.map(cat => (
-          <Pressable 
-            key={cat} 
+          <Pressable
+            key={cat}
             style={[s.chip, category === cat && (isExpense ? s.chipExpense : s.chipIncome)]}
             onPress={() => setCategory(cat)}
           >

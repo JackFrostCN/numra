@@ -1,31 +1,31 @@
-import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useCallback, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { SummaryCard } from '@/components/ui/summary-card';
 import { Card } from '@/components/ui/card';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { StatRing } from '@/components/ui/stat-ring';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { SummaryCard } from '@/components/ui/summary-card';
+import { Palette, Spacing } from '@/constants/theme';
 import {
+  getActiveLoans,
+  getBillPaymentsForMonth,
+  getBills,
   getMonthlyTotals,
   getRecentTransactions,
-  getBills,
-  getBillPaymentsForMonth,
-  getActiveLoans,
   getSetting,
 } from '@/db/queries';
+import type { Bill, Loan, MonthlyTotals, Transaction } from '@/types';
 import {
+  daysUntilDue,
   formatCurrency,
   formatDateShort,
   getCurrentYearMonth,
   getMonthDisplayName,
-  daysUntilDue,
 } from '@/utils/helpers';
-import type { Transaction, Bill, Loan, MonthlyTotals } from '@/types';
 
 export default function DashboardScreen() {
   const db = useSQLiteContext();
@@ -102,7 +102,7 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Welcome back 👋</Text>
+            <Text style={styles.greeting}>Welcome back Charith</Text>
             <Text style={styles.monthLabel}>{getMonthDisplayName(currentMonth)}</Text>
           </View>
         </View>
