@@ -60,13 +60,19 @@ export default function TransactionsScreen() {
         </View>
       </View>
       <View style={s.filterRow}>
-        {(['all', 'income', 'expense'] as const).map((f) => (
-          <Pressable key={f} onPress={() => setFilter(f)} style={[s.filterTab, filter === f && s.filterActive]}>
-            <Text style={[s.filterTxt, filter === f && s.filterTxtActive]}>
-              {f === 'all' ? 'All' : f === 'income' ? 'Income' : 'Expense'}
-            </Text>
-          </Pressable>
-        ))}
+        {(['all', 'income', 'expense'] as const).map((f) => {
+          const isActive = filter === f;
+          const activeTabStyle = f === 'all' ? s.filterAllActive : f === 'income' ? s.filterIncomeActive : s.filterExpenseActive;
+          const activeTxtStyle = f === 'all' ? s.filterAllTxtActive : f === 'income' ? s.filterIncomeTxtActive : s.filterExpenseTxtActive;
+          
+          return (
+            <Pressable key={f} onPress={() => setFilter(f)} style={[s.filterTab, isActive && activeTabStyle]}>
+              <Text style={[s.filterTxt, isActive && activeTxtStyle]}>
+                {f === 'all' ? 'All' : f === 'income' ? 'Income' : 'Expense'}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
       <ScrollView style={s.list} contentContainerStyle={s.listContent} showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
@@ -110,9 +116,13 @@ const s = StyleSheet.create({
   miniLbl: { fontSize: 12, color: Palette.textMuted, marginTop: 2 },
   filterRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.sm, gap: Spacing.sm },
   filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },
-  filterActive: { backgroundColor: Palette.accentMuted, borderColor: Palette.accent },
+  filterAllActive: { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: Palette.info },
+  filterIncomeActive: { backgroundColor: Palette.incomeBg, borderColor: Palette.income },
+  filterExpenseActive: { backgroundColor: Palette.expenseBg, borderColor: Palette.expense },
   filterTxt: { fontSize: 13, fontWeight: '500', color: Palette.textMuted },
-  filterTxtActive: { color: Palette.accent },
+  filterAllTxtActive: { color: Palette.info },
+  filterIncomeTxtActive: { color: Palette.income },
+  filterExpenseTxtActive: { color: Palette.expense },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
   dateGroup: { marginBottom: Spacing.md },
