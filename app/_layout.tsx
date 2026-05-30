@@ -75,6 +75,16 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="withdraw"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                title: 'Withdraw Cash',
+                headerStyle: { backgroundColor: Palette.bgCard },
+                headerTintColor: Palette.textPrimary,
+              }}
+            />
+            <Stack.Screen
               name="loan-details"
               options={{
                 presentation: 'card',

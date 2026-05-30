@@ -10,6 +10,8 @@ import type {
   Bill,
   BillPayment,
   MonthlyTotals,
+  Withdrawal,
+  BankSummary,
 } from '@/types';
 
 // ════════════════════════════════════════════════
@@ -24,15 +26,17 @@ export async function addTransaction(
     category: string;
     description?: string;
     date: string;
+    source?: 'bank' | 'hand';
   }
 ) {
   const result = await db.runAsync(
-    'INSERT INTO transactions (type, amount, category, description, date) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO transactions (type, amount, category, description, date, source) VALUES (?, ?, ?, ?, ?, ?)',
     data.type,
     data.amount,
     data.category,
     data.description ?? null,
-    data.date
+    data.date,
+    data.source ?? 'bank'
   );
   return result.lastInsertRowId;
 }
@@ -99,18 +103,20 @@ export async function addLoan(
     person_name: string;
     total_amount: number;
     date: string;
+    source: 'bank' | 'hand';
     due_date?: string;
     notes?: string;
   }
 ) {
   const result = await db.runAsync(
-    `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, due_date, notes) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, source, due_date, notes) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     data.type,
     data.person_name,
     data.total_amount,
     data.total_amount, // remaining = total at start
     data.date,
+    data.source,
     data.due_date ?? null,
     data.notes ?? null
   );
@@ -145,14 +151,16 @@ export async function recordLoanPayment(
   loanId: number,
   amount: number,
   date: string,
+  source: 'bank' | 'hand',
   note?: string
 ) {
   await db.withTransactionAsync(async () => {
     await db.runAsync(
-      'INSERT INTO loan_payments (loan_id, amount, date, note) VALUES (?, ?, ?, ?)',
+      'INSERT INTO loan_payments (loan_id, amount, date, source, note) VALUES (?, ?, ?, ?, ?)',
       loanId,
       amount,
       date,
+      source,
       note ?? null
     );
 
@@ -230,13 +238,15 @@ export async function markBillPaid(
   db: SQLiteDatabase,
   billId: number,
   month: string, // "YYYY-MM"
-  paidDate: string
+  paidDate: string,
+  source: 'bank' | 'hand'
 ) {
   await db.runAsync(
-    'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month) VALUES (?, ?, ?)',
+    'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month, source) VALUES (?, ?, ?, ?)',
     billId,
     paidDate,
-    month
+    month,
+    source
   );
 }
 
@@ -286,6 +296,122 @@ export async function getMonthlyBillsTotal(
     'SELECT COALESCE(SUM(amount), 0) as total FROM bills'
   );
   return result?.total ?? 0;
+}
+
+// ════════════════════════════════════════════════
+// WITHDRAWALS (Bank → Hand)
+// ════════════════════════════════════════════════
+
+export async function addWithdrawal(
+  db: SQLiteDatabase,
+  data: {
+    amount: number;
+    date: string;
+    note?: string;
+  }
+) {
+  const result = await db.runAsync(
+    'INSERT INTO withdrawals (amount, date, note) VALUES (?, ?, ?)',
+    data.amount,
+    data.date,
+    data.note ?? null
+  );
+  return result.lastInsertRowId;
+}
+
+export async function getWithdrawalsByMonth(
+  db: SQLiteDatabase,
+  yearMonth: string
+): Promise<Withdrawal[]> {
+  return db.getAllAsync<Withdrawal>(
+    `SELECT * FROM withdrawals 
+     WHERE strftime('%Y-%m', date) = ? 
+     ORDER BY date DESC, id DESC`,
+    yearMonth
+  );
+}
+
+export async function deleteWithdrawal(db: SQLiteDatabase, id: number) {
+  await db.runAsync('DELETE FROM withdrawals WHERE id = ?', id);
+}
+
+export async function getBankSummary(
+  db: SQLiteDatabase
+): Promise<{ bankBalance: number; handBalance: number }> {
+  // Use grouped aggregations to minimize queries and keep things fast
+  const [
+    transactionsRaw,
+    loansRaw,
+    lentPaymentsRaw,
+    borrowedPaymentsRaw,
+    billPaymentsRaw,
+    withdrawalsRaw,
+    salarySetting
+  ] = await Promise.all([
+    db.getAllAsync<{source: string, type: string, total: number}>(
+      `SELECT source, type, COALESCE(SUM(amount),0) as total FROM transactions GROUP BY source, type`
+    ),
+    db.getAllAsync<{source: string, type: string, total: number}>(
+      `SELECT source, type, COALESCE(SUM(total_amount),0) as total FROM loans GROUP BY source, type`
+    ),
+    db.getAllAsync<{source: string, total: number}>(
+      `SELECT p.source, COALESCE(SUM(p.amount),0) as total FROM loan_payments p JOIN loans l ON p.loan_id = l.id WHERE l.type = 'lent' GROUP BY p.source`
+    ),
+    db.getAllAsync<{source: string, total: number}>(
+      `SELECT p.source, COALESCE(SUM(p.amount),0) as total FROM loan_payments p JOIN loans l ON p.loan_id = l.id WHERE l.type = 'borrowed' GROUP BY p.source`
+    ),
+    db.getAllAsync<{source: string, total: number}>(
+      `SELECT p.source, COALESCE(SUM(b.amount),0) as total FROM bill_payments p JOIN bills b ON p.bill_id = b.id GROUP BY p.source`
+    ),
+    db.getFirstAsync<{total: number}>(
+      `SELECT COALESCE(SUM(amount),0) as total FROM withdrawals`
+    ),
+    db.getFirstAsync<{value: string}>(
+      `SELECT value FROM settings WHERE key = 'monthly_budget'`
+    )
+  ]);
+
+  // Helper to extract values easily
+  const getVal = (arr: any[], condition: (item: any) => boolean) => arr.find(condition)?.total ?? 0;
+
+  // Inflows
+  const bankIncome = getVal(transactionsRaw, t => t.source === 'bank' && t.type === 'income');
+  const handIncome = getVal(transactionsRaw, t => t.source === 'hand' && t.type === 'income');
+  
+  const bankBorrowed = getVal(loansRaw, l => l.source === 'bank' && l.type === 'borrowed');
+  const handBorrowed = getVal(loansRaw, l => l.source === 'hand' && l.type === 'borrowed');
+
+  const bankLentPaidBack = getVal(lentPaymentsRaw, p => p.source === 'bank');
+  const handLentPaidBack = getVal(lentPaymentsRaw, p => p.source === 'hand');
+
+  // Outflows
+  const bankExpense = getVal(transactionsRaw, t => t.source === 'bank' && t.type === 'expense');
+  const handExpense = getVal(transactionsRaw, t => t.source === 'hand' && t.type === 'expense');
+
+  const bankLentOut = getVal(loansRaw, l => l.source === 'bank' && l.type === 'lent');
+  const handLentOut = getVal(loansRaw, l => l.source === 'hand' && l.type === 'lent');
+
+  const bankBorrowedPayback = getVal(borrowedPaymentsRaw, p => p.source === 'bank');
+  const handBorrowedPayback = getVal(borrowedPaymentsRaw, p => p.source === 'hand');
+
+  const bankBills = getVal(billPaymentsRaw, p => p.source === 'bank');
+  const handBills = getVal(billPaymentsRaw, p => p.source === 'hand');
+
+  const totalWithdrawn = withdrawalsRaw?.total ?? 0;
+  const salary = Number(salarySetting?.value) || 0;
+
+  // Final Balance Calculation
+  // Bank starts from your salary, then adjusts with all inflows/outflows
+  const bankBalance = 
+    salary +
+    (bankIncome + bankBorrowed + bankLentPaidBack) - 
+    (bankExpense + bankLentOut + bankBorrowedPayback + bankBills + totalWithdrawn);
+    
+  const handBalance = 
+    (handIncome + handBorrowed + handLentPaidBack + totalWithdrawn) - 
+    (handExpense + handLentOut + handBorrowedPayback + handBills);
+
+  return { bankBalance, handBalance };
 }
 
 // ════════════════════════════════════════════════

@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getLoanById, getLoanPayments, recordLoanPayment, markLoanComplete, deleteLoan } from '@/db/queries';
 import { Palette, Spacing, Radius } from '@/constants/theme';
 import { formatCurrency, formatDateShort, getTodayISO } from '@/utils/helpers';
-import type { Loan, LoanPayment } from '@/types';
+import type { Loan, LoanPayment, TransactionSource } from '@/types';
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -18,6 +18,7 @@ export default function LoanDetailsScreen() {
   const [loan, setLoan] = useState<Loan | null>(null);
   const [payments, setPayments] = useState<LoanPayment[]>([]);
   const [payAmount, setPayAmount] = useState('');
+  const [paySource, setPaySource] = useState<TransactionSource>('bank');
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -37,7 +38,7 @@ export default function LoanDetailsScreen() {
     const amt = Number(payAmount);
     if (amt <= 0) return;
 
-    await recordLoanPayment(db, loan.id, amt, getTodayISO());
+    await recordLoanPayment(db, loan.id, amt, getTodayISO(), paySource);
     setPayAmount('');
     loadData();
   };
@@ -79,6 +80,22 @@ export default function LoanDetailsScreen() {
         {!isCompleted && (
           <Card style={s.payCard}>
             <Text style={s.payLbl}>Record Payment</Text>
+            <View style={s.sourceToggle}>
+              <Pressable
+                style={[s.sourceBtn, paySource === 'bank' && s.sourceBankActive]}
+                onPress={() => setPaySource('bank')}
+              >
+                <MaterialIcons name="account-balance" size={16} color={paySource === 'bank' ? Palette.white : Palette.textMuted} />
+                <Text style={[s.sourceTxt, paySource === 'bank' && s.sourceActiveTxt]}>Bank</Text>
+              </Pressable>
+              <Pressable
+                style={[s.sourceBtn, paySource === 'hand' && s.sourceHandActive]}
+                onPress={() => setPaySource('hand')}
+              >
+                <MaterialIcons name="account-balance-wallet" size={16} color={paySource === 'hand' ? Palette.white : Palette.textMuted} />
+                <Text style={[s.sourceTxt, paySource === 'hand' && s.sourceActiveTxt]}>Hand</Text>
+              </Pressable>
+            </View>
             <View style={s.payRow}>
               <TextInput
                 style={s.input}
@@ -104,6 +121,16 @@ export default function LoanDetailsScreen() {
               <View>
                 <Text style={s.payItemAmt}>{formatCurrency(p.amount)}</Text>
                 <Text style={s.payItemDate}>{formatDateShort(p.date)}</Text>
+              </View>
+              <View style={s.payItemSource}>
+                <MaterialIcons
+                  name={p.source === 'bank' ? 'account-balance' : 'account-balance-wallet'}
+                  size={14}
+                  color={p.source === 'bank' ? Palette.bank : Palette.wallet}
+                />
+                <Text style={[s.payItemDate, { color: p.source === 'bank' ? Palette.bank : Palette.wallet }]}>
+                  {p.source === 'bank' ? 'Bank' : 'Hand'}
+                </Text>
               </View>
             </View>
           ))
@@ -138,9 +165,16 @@ const s = StyleSheet.create({
   payTxt: { color: Palette.white, fontWeight: '600' },
   sectionTitle: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary, marginBottom: Spacing.sm },
   emptyTxt: { color: Palette.textMuted, fontSize: 14, fontStyle: 'italic' },
+  sourceToggle: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
+  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },
+  sourceBankActive: { backgroundColor: Palette.bank, borderColor: Palette.bank },
+  sourceHandActive: { backgroundColor: Palette.wallet, borderColor: Palette.wallet },
+  sourceTxt: { fontSize: 14, fontWeight: '500', color: Palette.textMuted },
+  sourceActiveTxt: { color: Palette.white },
   payItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Palette.borderLight },
   payItemAmt: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary },
   payItemDate: { fontSize: 12, color: Palette.textMuted, marginTop: 2 },
+  payItemSource: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   delBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, marginTop: Spacing.xl * 2, padding: Spacing.md },
   delTxt: { color: Palette.danger, fontWeight: '600', fontSize: 15 },
 });

@@ -12,7 +12,7 @@ export default function AddBillModal() {
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(BILL_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(BILL_CATEGORIES[0]);
   const [dueDay, setDueDay] = useState('');
 
   const handleSave = async () => {

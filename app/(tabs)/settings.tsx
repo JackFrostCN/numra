@@ -37,6 +37,7 @@ export default function SettingsScreen() {
             DELETE FROM loan_payments;
             DELETE FROM bills;
             DELETE FROM bill_payments;
+            DELETE FROM withdrawals;
           `);
           Alert.alert('Reset Complete', 'All data has been erased.');
           loadData();
@@ -60,7 +61,7 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Text style={s.sectionTitle}>Budgeting</Text>
+        <Text style={s.sectionTitle}>Monthly Salary</Text>
         <Card style={s.card}>
           <View style={s.inputRow}>
             <View style={s.inputWrapper}>
@@ -77,7 +78,7 @@ export default function SettingsScreen() {
               <Text style={s.saveBtnTxt}>Save</Text>
             </Pressable>
           </View>
-          <Text style={s.helpText}>Set a monthly limit to track your spending progress on the dashboard.</Text>
+          <Text style={s.helpText}>Your total monthly salary. This is used to calculate your budget and spending progress on the dashboard.</Text>
         </Card>
 
         <Text style={s.sectionTitle}>Data Management</Text>

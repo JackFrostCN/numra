@@ -5,6 +5,8 @@
 export type TransactionType = 'income' | 'expense';
 export type LoanType = 'lent' | 'borrowed';
 
+export type TransactionSource = 'bank' | 'hand';
+
 // ── Category Definitions ──────────────────────
 
 export const EXPENSE_CATEGORIES = [
@@ -61,6 +63,7 @@ export interface Transaction {
   category: string;
   description: string | null;
   date: string; // ISO date string YYYY-MM-DD
+  source: TransactionSource;
   created_at: string;
 }
 
@@ -74,6 +77,7 @@ export interface Loan {
   due_date: string | null;
   notes: string | null;
   is_completed: number; // 0 or 1
+  source: TransactionSource;
   created_at: string;
 }
 
@@ -83,6 +87,7 @@ export interface LoanPayment {
   amount: number;
   date: string;
   note: string | null;
+  source: TransactionSource;
 }
 
 export interface Bill {
@@ -100,6 +105,15 @@ export interface BillPayment {
   bill_id: number;
   paid_date: string;
   month: string; // YYYY-MM
+  source: TransactionSource;
+}
+
+export interface Withdrawal {
+  id: number;
+  amount: number;
+  date: string;
+  note: string | null;
+  created_at: string;
 }
 
 // ── Computed/View Types ───────────────────────
@@ -108,6 +122,11 @@ export interface MonthlyTotals {
   income: number;
   expenses: number;
   balance: number;
+}
+
+export interface BankSummary {
+  bankBalance: number;      // income - bankSpent - totalWithdrawn
+  handBalance: number;      // totalWithdrawn - handSpent
 }
 
 export interface BillWithStatus extends Bill {

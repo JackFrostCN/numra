@@ -39,6 +39,10 @@ export const Palette = {
   loanBg: 'rgba(245, 158, 11, 0.12)',
   bill: '#8B5CF6',
   billBg: 'rgba(139, 92, 246, 0.12)',
+  bank: '#3B82F6',
+  bankBg: 'rgba(59, 130, 246, 0.12)',
+  wallet: '#F97316',
+  walletBg: 'rgba(249, 115, 22, 0.12)',
 
   // Status
   success: '#14B8A6',
@@ -52,6 +56,8 @@ export const Palette = {
   gradientBalance: ['#4338CA', '#6366F1'] as const,
   gradientCard: ['#141926', '#1C2333'] as const,
   gradientAccent: ['#0D9488', '#5EEAD4'] as const,
+  gradientBank: ['#2563EB', '#3B82F6'] as const,
+  gradientWallet: ['#EA580C', '#F97316'] as const,
 
   // Tab bar
   tabBar: '#0E1322',

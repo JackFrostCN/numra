@@ -4,7 +4,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 3;
 
 /**
  * Initialize and migrate the database schema.
@@ -33,6 +33,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         category TEXT NOT NULL,
         description TEXT,
         date TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand')),
         created_at TEXT DEFAULT (datetime('now'))
       );
 
@@ -46,6 +47,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         due_date TEXT,
         notes TEXT,
         is_completed INTEGER DEFAULT 0,
+        source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand')),
         created_at TEXT DEFAULT (datetime('now'))
       );
 
@@ -55,6 +57,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         amount REAL NOT NULL,
         date TEXT NOT NULL,
         note TEXT,
+        source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand')),
         FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE
       );
 
@@ -73,7 +76,16 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         bill_id INTEGER NOT NULL,
         paid_date TEXT NOT NULL,
         month TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand')),
         FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS withdrawals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
       );
 
       CREATE TABLE IF NOT EXISTS settings (
@@ -83,8 +95,10 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
       CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
       CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+      CREATE INDEX IF NOT EXISTS idx_transactions_source ON transactions(source);
       CREATE INDEX IF NOT EXISTS idx_loans_completed ON loans(is_completed);
       CREATE INDEX IF NOT EXISTS idx_bill_payments_month ON bill_payments(month);
+      CREATE INDEX IF NOT EXISTS idx_withdrawals_date ON withdrawals(date);
     `);
 
     // Insert default settings
@@ -98,12 +112,50 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       'monthly_budget',
       '0'
     );
+    await db.runAsync(
+      'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
+      'monthly_income',
+      '0'
+    );
 
-    currentVersion = 1;
+    currentVersion = 2;
   }
 
-  // Future migrations:
-  // if (currentVersion === 1) { ... currentVersion = 2; }
+  // Migration: v1 → v2 (existing users)
+  if (currentVersion === 1) {
+    await db.execAsync(`
+      ALTER TABLE transactions ADD COLUMN source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand'));
+
+      CREATE TABLE IF NOT EXISTS withdrawals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_transactions_source ON transactions(source);
+      CREATE INDEX IF NOT EXISTS idx_withdrawals_date ON withdrawals(date);
+    `);
+
+    await db.runAsync(
+      'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
+      'monthly_income',
+      '0'
+    );
+
+    currentVersion = 2;
+  }
+
+  // Migration: v2 → v3
+  if (currentVersion === 2) {
+    await db.execAsync(`
+      ALTER TABLE loans ADD COLUMN source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand'));
+      ALTER TABLE loan_payments ADD COLUMN source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand'));
+      ALTER TABLE bill_payments ADD COLUMN source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand'));
+    `);
+    currentVersion = 3;
+  }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }

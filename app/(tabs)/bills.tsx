@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, Alert } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -36,10 +36,26 @@ export default function BillsScreen() {
   const togglePaid = async (billId: number, isPaid: boolean) => {
     if (isPaid) {
       await markBillUnpaid(db, billId, yearMonth);
+      loadData();
     } else {
-      await markBillPaid(db, billId, yearMonth, new Date().toISOString());
+      Alert.alert('Pay From', 'Choose where you paid this bill from:', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: '🏦 Bank',
+          onPress: async () => {
+            await markBillPaid(db, billId, yearMonth, new Date().toISOString(), 'bank');
+            loadData();
+          },
+        },
+        {
+          text: '💵 Hand',
+          onPress: async () => {
+            await markBillPaid(db, billId, yearMonth, new Date().toISOString(), 'hand');
+            loadData();
+          },
+        },
+      ]);
     }
-    loadData();
   };
 
   const totalUnpaid = bills.filter(b => !b.is_paid).reduce((sum, b) => sum + b.amount, 0);

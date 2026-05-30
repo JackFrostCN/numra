@@ -6,12 +6,15 @@ import { useRouter } from 'expo-router';
 import { addLoan } from '@/db/queries';
 import { Palette, Spacing, Radius } from '@/constants/theme';
 import { getTodayISO } from '@/utils/helpers';
+import type { TransactionSource } from '@/types';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function AddLoanModal() {
   const db = useSQLiteContext();
   const router = useRouter();
 
   const [type, setType] = useState<'borrowed' | 'lent'>('borrowed');
+  const [source, setSource] = useState<TransactionSource>('bank');
   const [amount, setAmount] = useState('');
   const [person, setPerson] = useState('');
   const [date, setDate] = useState(getTodayISO());
@@ -35,9 +38,9 @@ export default function AddLoanModal() {
     
     await addLoan(db, {
       type,
-      amount: Number(amount),
       person_name: person.trim(),
       date,
+      source,
       total_amount: Number(amount),
     });
     router.back();
@@ -56,6 +59,24 @@ export default function AddLoanModal() {
         </Pressable>
         <Pressable style={[s.toggleBtn, type === 'lent' && s.lentActive]} onPress={() => setType('lent')}>
           <Text style={[s.toggleTxt, type === 'lent' && s.activeTxt]}>Owed To Me</Text>
+        </Pressable>
+      </View>
+
+      <Text style={s.label}>{type === 'borrowed' ? 'Received In' : 'Paid From'}</Text>
+      <View style={s.sourceToggle}>
+        <Pressable
+          style={[s.sourceBtn, source === 'bank' && s.sourceBankActive]}
+          onPress={() => setSource('bank')}
+        >
+          <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? Palette.white : Palette.textMuted} />
+          <Text style={[s.sourceTxt, source === 'bank' && s.activeTxt]}>Bank (Card)</Text>
+        </Pressable>
+        <Pressable
+          style={[s.sourceBtn, source === 'hand' && s.sourceHandActive]}
+          onPress={() => setSource('hand')}
+        >
+          <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? Palette.white : Palette.textMuted} />
+          <Text style={[s.sourceTxt, source === 'hand' && s.activeTxt]}>Hand (Cash)</Text>
         </Pressable>
       </View>
 
@@ -114,6 +135,11 @@ const s = StyleSheet.create({
   input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
   dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
   dateText: { color: Palette.textPrimary, fontSize: 16 },
+  sourceToggle: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
+  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },
+  sourceBankActive: { backgroundColor: Palette.bank, borderColor: Palette.bank },
+  sourceHandActive: { backgroundColor: Palette.wallet, borderColor: Palette.wallet },
+  sourceTxt: { fontSize: 14, fontWeight: '500', color: Palette.textMuted },
   saveBtn: { backgroundColor: Palette.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
   saveTxt: { color: Palette.white, fontSize: 16, fontWeight: '600' },
 });

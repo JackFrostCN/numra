@@ -1,7 +1,9 @@
 import { Palette, Radius, Spacing } from '@/constants/theme';
 import { addTransaction } from '@/db/queries';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
+import type { TransactionSource } from '@/types';
 import { getTodayISO } from '@/utils/helpers';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
@@ -14,10 +16,11 @@ export default function AddTransactionModal() {
 
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [source, setSource] = useState<TransactionSource>('bank');
 
   const isExpense = type === 'expense';
   const categories = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -48,6 +51,7 @@ export default function AddTransactionModal() {
       category,
       description: description.trim() || undefined,
       date,
+      source: isExpense ? source : 'bank',
     });
     router.back();
   };
@@ -85,6 +89,24 @@ export default function AddTransactionModal() {
         placeholderTextColor={Palette.textMuted}
         autoFocus
       />
+
+      <Text style={s.label}>{isExpense ? 'Paid From' : 'Received In'}</Text>
+      <View style={s.sourceToggle}>
+        <Pressable
+          style={[s.sourceBtn, source === 'bank' && s.sourceBankActive]}
+          onPress={() => setSource('bank')}
+        >
+          <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? Palette.white : Palette.textMuted} />
+          <Text style={[s.sourceTxt, source === 'bank' && s.activeTxt]}>Bank (Card)</Text>
+        </Pressable>
+        <Pressable
+          style={[s.sourceBtn, source === 'hand' && s.sourceHandActive]}
+          onPress={() => setSource('hand')}
+        >
+          <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? Palette.white : Palette.textMuted} />
+          <Text style={[s.sourceTxt, source === 'hand' && s.activeTxt]}>Hand (Cash)</Text>
+        </Pressable>
+      </View>
 
       <Text style={s.label}>Category</Text>
       <View style={s.chipContainer}>
@@ -142,6 +164,11 @@ const s = StyleSheet.create({
   input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
   dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
   dateText: { color: Palette.textPrimary, fontSize: 16 },
+  sourceToggle: { flexDirection: 'row', backgroundColor: Palette.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.sm },
+  sourceBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.md, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  sourceBankActive: { backgroundColor: Palette.bank },
+  sourceHandActive: { backgroundColor: Palette.wallet },
+  sourceTxt: { fontSize: 14, fontWeight: '600', color: Palette.textMuted },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: Palette.bgInput, borderWidth: 1, borderColor: Palette.border },
   chipExpense: { backgroundColor: Palette.expense, borderColor: Palette.expense },
