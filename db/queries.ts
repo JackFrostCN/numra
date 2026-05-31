@@ -27,16 +27,20 @@ export async function addTransaction(
     description?: string;
     date: string;
     source?: 'bank' | 'hand';
+    linked_type?: string;
+    linked_id?: number;
   }
 ) {
   const result = await db.runAsync(
-    'INSERT INTO transactions (type, amount, category, description, date, source) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     data.type,
     data.amount,
     data.category,
     data.description ?? null,
     data.date,
-    data.source ?? 'bank'
+    data.source ?? 'bank',
+    data.linked_type ?? null,
+    data.linked_id ?? null
   );
   return result.lastInsertRowId;
 }
@@ -178,19 +182,41 @@ export async function addLoan(
     notes?: string;
   }
 ) {
-  const result = await db.runAsync(
-    `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, source, due_date, notes) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    data.type,
-    data.person_name,
-    data.total_amount,
-    data.total_amount, // remaining = total at start
-    data.date,
-    data.source,
-    data.due_date ?? null,
-    data.notes ?? null
-  );
-  return result.lastInsertRowId;
+  let loanId = 0;
+  await db.withTransactionAsync(async () => {
+    const result = await db.runAsync(
+      `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, source, due_date, notes) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      data.type,
+      data.person_name,
+      data.total_amount,
+      data.total_amount, // remaining = total at start
+      data.date,
+      data.source,
+      data.due_date ?? null,
+      data.notes ?? null
+    );
+    loanId = result.lastInsertRowId;
+
+    // Automatically log this as a transaction
+    // If I borrow money, it's Income to my bank/hand.
+    // If I lend money, it's Expense from my bank/hand.
+    const txnType = data.type === 'borrowed' ? 'income' : 'expense';
+    const categoryName = data.type === 'borrowed' ? 'Loan Borrowed' : 'Loan Lent';
+    
+    await db.runAsync(
+      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      txnType,
+      data.total_amount,
+      categoryName,
+      data.type === 'borrowed' ? `Borrowed from ${data.person_name}` : `Lent to ${data.person_name}`,
+      data.date,
+      data.source,
+      'loan',
+      loanId
+    );
+  });
+  return loanId;
 }
 
 export async function getActiveLoans(
@@ -225,7 +251,13 @@ export async function recordLoanPayment(
   note?: string
 ) {
   await db.withTransactionAsync(async () => {
-    await db.runAsync(
+    const loan = await db.getFirstAsync<Loan>(
+      'SELECT * FROM loans WHERE id = ?',
+      loanId
+    );
+    if (!loan) return;
+
+    const result = await db.runAsync(
       'INSERT INTO loan_payments (loan_id, amount, date, source, note) VALUES (?, ?, ?, ?, ?)',
       loanId,
       amount,
@@ -233,6 +265,7 @@ export async function recordLoanPayment(
       source,
       note ?? null
     );
+    const paymentId = result.lastInsertRowId;
 
     await db.runAsync(
       'UPDATE loans SET remaining_amount = MAX(0, remaining_amount - ?) WHERE id = ?',
@@ -240,12 +273,24 @@ export async function recordLoanPayment(
       loanId
     );
 
-    // Auto-complete if remaining is 0
-    const loan = await db.getFirstAsync<Loan>(
-      'SELECT * FROM loans WHERE id = ?',
-      loanId
+    // If I pay back a borrowed loan -> Expense.
+    // If someone pays back a loan I lent them -> Income.
+    const txnType = loan.type === 'borrowed' ? 'expense' : 'income';
+    
+    await db.runAsync(
+      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      txnType,
+      amount,
+      'Debt Repayment',
+      loan.type === 'borrowed' ? `Paid back ${loan.person_name}` : `Received from ${loan.person_name}`,
+      date,
+      source,
+      'loan_payment',
+      paymentId
     );
-    if (loan && loan.remaining_amount <= 0) {
+
+    // Auto-complete if remaining is 0
+    if (loan.remaining_amount - amount <= 0) {
       await db.runAsync(
         'UPDATE loans SET is_completed = 1, remaining_amount = 0 WHERE id = ?',
         loanId
@@ -311,13 +356,31 @@ export async function markBillPaid(
   paidDate: string,
   source: 'bank' | 'hand'
 ) {
-  await db.runAsync(
-    'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month, source) VALUES (?, ?, ?, ?)',
-    billId,
-    paidDate,
-    month,
-    source
-  );
+  await db.withTransactionAsync(async () => {
+    const bill = await db.getFirstAsync<Bill>('SELECT * FROM bills WHERE id = ?', billId);
+    if (!bill) return;
+
+    const result = await db.runAsync(
+      'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month, source) VALUES (?, ?, ?, ?)',
+      billId,
+      paidDate,
+      month,
+      source
+    );
+    const paymentId = result.lastInsertRowId;
+
+    await db.runAsync(
+      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'expense',
+      bill.amount,
+      bill.category,
+      `Bill Payment: ${bill.name}`,
+      paidDate,
+      source,
+      'bill_payment',
+      paymentId
+    );
+  });
 }
 
 export async function markBillUnpaid(
@@ -325,11 +388,17 @@ export async function markBillUnpaid(
   billId: number,
   month: string
 ) {
-  await db.runAsync(
-    'DELETE FROM bill_payments WHERE bill_id = ? AND month = ?',
-    billId,
-    month
-  );
+  await db.withTransactionAsync(async () => {
+    const payment = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM bill_payments WHERE bill_id = ? AND month = ?',
+      billId,
+      month
+    );
+    if (payment) {
+      await db.runAsync('DELETE FROM transactions WHERE linked_type = ? AND linked_id = ?', 'bill_payment', payment.id);
+      await db.runAsync('DELETE FROM bill_payments WHERE id = ?', payment.id);
+    }
+  });
 }
 
 export async function getBillPaymentsForMonth(
@@ -409,29 +478,14 @@ export async function getBankSummary(
   db: SQLiteDatabase
 ): Promise<{ bankBalance: number; handBalance: number }> {
   // Use grouped aggregations to minimize queries and keep things fast
+  // Since we now auto-log loans and bills as transactions, we ONLY need transactions and withdrawals
   const [
     transactionsRaw,
-    loansRaw,
-    lentPaymentsRaw,
-    borrowedPaymentsRaw,
-    billPaymentsRaw,
     withdrawalsRaw,
     salarySetting
   ] = await Promise.all([
     db.getAllAsync<{source: string, type: string, total: number}>(
       `SELECT source, type, COALESCE(SUM(amount),0) as total FROM transactions GROUP BY source, type`
-    ),
-    db.getAllAsync<{source: string, type: string, total: number}>(
-      `SELECT source, type, COALESCE(SUM(total_amount),0) as total FROM loans GROUP BY source, type`
-    ),
-    db.getAllAsync<{source: string, total: number}>(
-      `SELECT p.source, COALESCE(SUM(p.amount),0) as total FROM loan_payments p JOIN loans l ON p.loan_id = l.id WHERE l.type = 'lent' GROUP BY p.source`
-    ),
-    db.getAllAsync<{source: string, total: number}>(
-      `SELECT p.source, COALESCE(SUM(p.amount),0) as total FROM loan_payments p JOIN loans l ON p.loan_id = l.id WHERE l.type = 'borrowed' GROUP BY p.source`
-    ),
-    db.getAllAsync<{source: string, total: number}>(
-      `SELECT p.source, COALESCE(SUM(b.amount),0) as total FROM bill_payments p JOIN bills b ON p.bill_id = b.id GROUP BY p.source`
     ),
     db.getFirstAsync<{total: number}>(
       `SELECT COALESCE(SUM(amount),0) as total FROM withdrawals`
@@ -441,45 +495,19 @@ export async function getBankSummary(
     )
   ]);
 
-  // Helper to extract values easily
   const getVal = (arr: any[], condition: (item: any) => boolean) => arr.find(condition)?.total ?? 0;
 
-  // Inflows
   const bankIncome = getVal(transactionsRaw, t => t.source === 'bank' && t.type === 'income');
   const handIncome = getVal(transactionsRaw, t => t.source === 'hand' && t.type === 'income');
-  
-  const bankBorrowed = getVal(loansRaw, l => l.source === 'bank' && l.type === 'borrowed');
-  const handBorrowed = getVal(loansRaw, l => l.source === 'hand' && l.type === 'borrowed');
 
-  const bankLentPaidBack = getVal(lentPaymentsRaw, p => p.source === 'bank');
-  const handLentPaidBack = getVal(lentPaymentsRaw, p => p.source === 'hand');
-
-  // Outflows
   const bankExpense = getVal(transactionsRaw, t => t.source === 'bank' && t.type === 'expense');
   const handExpense = getVal(transactionsRaw, t => t.source === 'hand' && t.type === 'expense');
-
-  const bankLentOut = getVal(loansRaw, l => l.source === 'bank' && l.type === 'lent');
-  const handLentOut = getVal(loansRaw, l => l.source === 'hand' && l.type === 'lent');
-
-  const bankBorrowedPayback = getVal(borrowedPaymentsRaw, p => p.source === 'bank');
-  const handBorrowedPayback = getVal(borrowedPaymentsRaw, p => p.source === 'hand');
-
-  const bankBills = getVal(billPaymentsRaw, p => p.source === 'bank');
-  const handBills = getVal(billPaymentsRaw, p => p.source === 'hand');
 
   const totalWithdrawn = withdrawalsRaw?.total ?? 0;
   const salary = Number(salarySetting?.value) || 0;
 
-  // Final Balance Calculation
-  // Bank starts from your salary, then adjusts with all inflows/outflows
-  const bankBalance = 
-    salary +
-    (bankIncome + bankBorrowed + bankLentPaidBack) - 
-    (bankExpense + bankLentOut + bankBorrowedPayback + bankBills + totalWithdrawn);
-    
-  const handBalance = 
-    (handIncome + handBorrowed + handLentPaidBack + totalWithdrawn) - 
-    (handExpense + handLentOut + handBorrowedPayback + handBills);
+  const bankBalance = salary + bankIncome - bankExpense - totalWithdrawn;
+  const handBalance = handIncome + totalWithdrawn - handExpense;
 
   return { bankBalance, handBalance };
 }

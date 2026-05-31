@@ -4,7 +4,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 3;
+const DATABASE_VERSION = 4;
 
 /**
  * Initialize and migrate the database schema.
@@ -34,6 +34,8 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         description TEXT,
         date TEXT NOT NULL,
         source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand')),
+        linked_type TEXT,
+        linked_id INTEGER,
         created_at TEXT DEFAULT (datetime('now'))
       );
 
@@ -118,7 +120,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       '0'
     );
 
-    currentVersion = 2;
+    currentVersion = 3;
   }
 
   // Migration: v1 → v2 (existing users)
@@ -155,6 +157,15 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       ALTER TABLE bill_payments ADD COLUMN source TEXT NOT NULL DEFAULT 'bank' CHECK(source IN ('bank', 'hand'));
     `);
     currentVersion = 3;
+  }
+
+  // Migration: v3 → v4
+  if (currentVersion === 3) {
+    await db.execAsync(`
+      ALTER TABLE transactions ADD COLUMN linked_type TEXT;
+      ALTER TABLE transactions ADD COLUMN linked_id INTEGER;
+    `);
+    currentVersion = 4;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
