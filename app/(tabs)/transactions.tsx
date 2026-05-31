@@ -5,33 +5,60 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Card } from '@/components/ui/card';
 import { FAB } from '@/components/ui/fab';
+import { DaySelector } from '@/components/ui/day-selector';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Palette, Spacing, Radius } from '@/constants/theme';
-import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction } from '@/db/queries';
-import { formatCurrency, formatDateShort, getYearMonth } from '@/utils/helpers';
+import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction, getTransactionsByDay, getDailyTotals } from '@/db/queries';
+import { formatCurrency, formatDateShort, getYearMonth, getTodayISO } from '@/utils/helpers';
 import type { Transaction, MonthlyTotals } from '@/types';
 
 export default function TransactionsScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
   const [monthOffset, setMonthOffset] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(getTodayISO());
+  const [viewMode, setViewMode] = useState<'monthly' | 'daily'>('daily');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totals, setTotals] = useState<MonthlyTotals>({ income: 0, expenses: 0, balance: 0 });
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
   const yearMonth = getYearMonth(monthOffset);
+  const dateString = selectedDate;
 
   const loadData = useCallback(async () => {
-    const [txns, mt] = await Promise.all([
-      getTransactionsByMonth(db, yearMonth),
-      getMonthlyTotals(db, yearMonth),
-    ]);
-    setTransactions(txns);
-    setTotals(mt);
-  }, [db, yearMonth]);
+    if (viewMode === 'monthly') {
+      const [txns, mt] = await Promise.all([
+        getTransactionsByMonth(db, yearMonth),
+        getMonthlyTotals(db, yearMonth),
+      ]);
+      setTransactions(txns);
+      setTotals(mt);
+    } else {
+      const [txns, mt] = await Promise.all([
+        getTransactionsByDay(db, dateString),
+        getDailyTotals(db, dateString),
+      ]);
+      setTransactions(txns);
+      setTotals(mt);
+    }
+  }, [db, yearMonth, dateString, viewMode]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+
+  const handlePrevDay = () => {
+    const parts = selectedDate.split('-');
+    const d = parts.length === 3 ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])) : new Date();
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  };
+
+  const handleNextDay = () => {
+    const parts = selectedDate.split('-');
+    const d = parts.length === 3 ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])) : new Date();
+    d.setDate(d.getDate() + 1);
+    setSelectedDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  };
 
   const handleDelete = (id: number) => {
     Alert.alert('Delete Transaction', 'Are you sure?', [
@@ -46,17 +73,43 @@ export default function TransactionsScreen() {
 
   return (
     <View style={s.container}>
-      <View style={s.header}><Text style={s.title}>Transactions</Text></View>
-      <MonthSelector yearMonth={yearMonth} onPrev={() => setMonthOffset(o => o - 1)} onNext={() => setMonthOffset(o => o + 1)} />
+      <View style={s.header}>
+        <Text style={s.title}>Transactions</Text>
+        <View style={s.viewModeRow}>
+          <Pressable onPress={() => setViewMode('monthly')} style={[s.viewModeBtn, viewMode === 'monthly' && s.viewModeBtnActive]}>
+            <Text style={[s.viewModeTxt, viewMode === 'monthly' && s.viewModeTxtActive]}>Monthly</Text>
+          </Pressable>
+          <Pressable onPress={() => setViewMode('daily')} style={[s.viewModeBtn, viewMode === 'daily' && s.viewModeBtnActive]}>
+            <Text style={[s.viewModeTxt, viewMode === 'daily' && s.viewModeTxtActive]}>Daily</Text>
+          </Pressable>
+        </View>
+      </View>
+      {viewMode === 'monthly' ? (
+        <MonthSelector yearMonth={yearMonth} onPrev={() => setMonthOffset(o => o - 1)} onNext={() => setMonthOffset(o => o + 1)} />
+      ) : (
+        <DaySelector 
+          dateString={dateString} 
+          onChange={setSelectedDate}
+          onPrev={handlePrevDay} 
+          onNext={handleNextDay} 
+        />
+      )}
       <View style={s.miniSummary}>
         <View style={s.miniItem}>
-          <Text style={[s.miniAmt, { color: Palette.income }]}>+{formatCurrency(totals.income)}</Text>
+          <Text style={[s.miniAmt, { color: Palette.income }]} numberOfLines={1} adjustsFontSizeToFit>+{formatCurrency(totals.income)}</Text>
           <Text style={s.miniLbl}>Income</Text>
         </View>
         <View style={s.divider} />
         <View style={s.miniItem}>
-          <Text style={[s.miniAmt, { color: Palette.expense }]}>-{formatCurrency(totals.expenses)}</Text>
+          <Text style={[s.miniAmt, { color: Palette.expense }]} numberOfLines={1} adjustsFontSizeToFit>-{formatCurrency(totals.expenses)}</Text>
           <Text style={s.miniLbl}>Expenses</Text>
+        </View>
+        <View style={s.divider} />
+        <View style={s.miniItem}>
+          <Text style={[s.miniAmt, { color: totals.balance >= 0 ? Palette.income : Palette.expense }]} numberOfLines={1} adjustsFontSizeToFit>
+            {totals.balance > 0 ? '+' : ''}{formatCurrency(totals.balance)}
+          </Text>
+          <Text style={s.miniLbl}>Balance</Text>
         </View>
       </View>
       <View style={s.filterRow}>
@@ -111,12 +164,17 @@ export default function TransactionsScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Palette.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
+  viewModeRow: { flexDirection: 'row', backgroundColor: Palette.bgCard, borderRadius: Radius.full, padding: 2, borderWidth: 1, borderColor: Palette.border },
+  viewModeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
+  viewModeBtnActive: { backgroundColor: Palette.bgElevated, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
+  viewModeTxt: { fontSize: 12, fontWeight: '500', color: Palette.textMuted },
+  viewModeTxtActive: { color: Palette.textPrimary },
   miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: Palette.bgCard, borderRadius: Radius.lg, padding: Spacing.base, borderWidth: 1, borderColor: Palette.border },
   miniItem: { flex: 1, alignItems: 'center' },
   divider: { width: 1, backgroundColor: Palette.border },
-  miniAmt: { fontSize: 16, fontWeight: '700' },
+  miniAmt: { fontSize: 15, fontWeight: '700' },
   miniLbl: { fontSize: 12, color: Palette.textMuted, marginTop: 2 },
   filterRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.sm, gap: Spacing.sm },
   filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },

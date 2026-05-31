@@ -78,6 +78,43 @@ export async function getMonthlyTotals(
   };
 }
 
+export async function getTransactionsByDay(
+  db: SQLiteDatabase,
+  dateString: string // "YYYY-MM-DD"
+): Promise<Transaction[]> {
+  return db.getAllAsync<Transaction>(
+    `SELECT * FROM transactions 
+     WHERE date = ? 
+     ORDER BY id DESC`,
+    dateString
+  );
+}
+
+export async function getDailyTotals(
+  db: SQLiteDatabase,
+  dateString: string
+): Promise<MonthlyTotals> {
+  const income = await db.getFirstAsync<{ total: number }>(
+    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+     WHERE type = 'income' AND date = ?`,
+    dateString
+  );
+  const expenses = await db.getFirstAsync<{ total: number }>(
+    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
+     WHERE type = 'expense' AND date = ?`,
+    dateString
+  );
+
+  const inc = income?.total ?? 0;
+  const exp = expenses?.total ?? 0;
+
+  return {
+    income: inc,
+    expenses: exp,
+    balance: inc - exp,
+  };
+}
+
 export async function getRecentTransactions(
   db: SQLiteDatabase,
   limit: number = 5

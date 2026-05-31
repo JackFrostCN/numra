@@ -74,6 +74,36 @@ export function getYearMonth(offset: number = 0): string {
 }
 
 /**
+ * Get YYYY-MM-DD for a given day offset from today.
+ */
+export function getDateOffset(offset: number = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Get display name for a YYYY-MM-DD string (e.g. "Today", "Yesterday", "May 26, 2026").
+ */
+export function getDayDisplayName(dateString: string): string {
+  const today = getTodayISO();
+  if (dateString === today) return 'Today';
+  
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}-${String(yesterdayDate.getDate()).padStart(2, '0')}`;
+  if (dateString === yesterday) return 'Yesterday';
+  
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = `${tomorrowDate.getFullYear()}-${String(tomorrowDate.getMonth() + 1).padStart(2, '0')}-${String(tomorrowDate.getDate()).padStart(2, '0')}`;
+  if (dateString === tomorrow) return 'Tomorrow';
+  
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-LK', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
  * Get display name for a YYYY-MM string.
  */
 export function getMonthDisplayName(yearMonth: string): string {
