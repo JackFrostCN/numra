@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { StatRing } from '@/components/ui/stat-ring';
 import { SummaryCard } from '@/components/ui/summary-card';
+import { FAB } from '@/components/ui/fab';
 import { Palette, Spacing, Radius } from '@/constants/theme';
 import {
   getActiveLoans,
@@ -357,6 +358,7 @@ export default function DashboardScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      <FAB onPress={() => router.push('/add-transaction')} />
     </View>
   );
 }
