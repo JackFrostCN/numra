@@ -1,81 +1,107 @@
+import {
+  createMaterialTopTabNavigator,
+  MaterialTopTabNavigationOptions,
+  MaterialTopTabNavigationEventMap,
+} from '@react-navigation/material-top-tabs';
+import { withLayoutContext } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HapticTab } from '@/components/haptic-tab';
 import { Palette } from '@/constants/theme';
+
+const { Navigator } = createMaterialTopTabNavigator();
+
+export const MaterialTopTabs = withLayoutContext<
+  MaterialTopTabNavigationOptions,
+  typeof Navigator,
+  any,
+  MaterialTopTabNavigationEventMap
+>(Navigator);
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
   return (
-    <Tabs
+    <MaterialTopTabs
+      tabBarPosition="bottom"
+      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: Palette.accent,
         tabBarInactiveTintColor: Palette.textMuted,
-        headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarShowIcon: true,
+        tabBarIndicatorStyle: {
+          height: 0,
+        },
         tabBarStyle: {
           backgroundColor: Palette.tabBar,
           borderTopColor: Palette.tabBarBorder,
           borderTopWidth: 1,
-          minHeight: 60 + (Platform.OS === 'android' ? insets.bottom || 24 : insets.bottom),
+          height: 60 + (Platform.OS === 'android' ? insets.bottom || 24 : insets.bottom),
           paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 16) : Math.max(insets.bottom, 8),
-          paddingTop: 8,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          textTransform: 'none',
+          marginTop: 4,
         },
+        tabBarItemStyle: {
+          padding: 0,
+          paddingTop: 8,
+        },
+        swipeEnabled: true,
+        animationEnabled: true,
       }}
     >
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="dashboard" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="dashboard" size={24} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="transactions"
         options={{
           title: 'Transactions',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="swap-horiz" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="swap-horiz" size={24} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="loans"
         options={{
           title: 'Loans',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="account-balance" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="account-balance" size={24} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="bills"
         options={{
           title: 'Bills',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="receipt-long" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="receipt-long" size={24} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="settings" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="settings" size={24} color={color} />
           ),
         }}
       />
-    </Tabs>
+    </MaterialTopTabs>
   );
 }
