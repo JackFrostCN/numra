@@ -47,7 +47,7 @@ export async function getTransactionsByMonth(
 ): Promise<Transaction[]> {
   return db.getAllAsync<Transaction>(
     `SELECT * FROM transactions 
-     WHERE strftime('%Y-%m', date) = ? 
+     WHERE strftime('%Y-%m', date, 'localtime') = ? 
      ORDER BY date DESC, id DESC`,
     yearMonth
   );
@@ -59,12 +59,12 @@ export async function getMonthlyTotals(
 ): Promise<MonthlyTotals> {
   const income = await db.getFirstAsync<{ total: number }>(
     `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
-     WHERE type = 'income' AND strftime('%Y-%m', date) = ?`,
+     WHERE type = 'income' AND strftime('%Y-%m', date, 'localtime') = ?`,
     yearMonth
   );
   const expenses = await db.getFirstAsync<{ total: number }>(
     `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
-     WHERE type = 'expense' AND strftime('%Y-%m', date) = ?`,
+     WHERE type = 'expense' AND strftime('%Y-%m', date, 'localtime') = ?`,
     yearMonth
   );
 
@@ -84,7 +84,7 @@ export async function getTransactionsByDay(
 ): Promise<Transaction[]> {
   return db.getAllAsync<Transaction>(
     `SELECT * FROM transactions 
-     WHERE date = ? 
+     WHERE strftime('%Y-%m-%d', date, 'localtime') = ? 
      ORDER BY id DESC`,
     dateString
   );
@@ -96,12 +96,12 @@ export async function getDailyTotals(
 ): Promise<MonthlyTotals> {
   const income = await db.getFirstAsync<{ total: number }>(
     `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
-     WHERE type = 'income' AND date = ?`,
+     WHERE type = 'income' AND strftime('%Y-%m-%d', date, 'localtime') = ?`,
     dateString
   );
   const expenses = await db.getFirstAsync<{ total: number }>(
     `SELECT COALESCE(SUM(amount), 0) as total FROM transactions 
-     WHERE type = 'expense' AND date = ?`,
+     WHERE type = 'expense' AND strftime('%Y-%m-%d', date, 'localtime') = ?`,
     dateString
   );
 
