@@ -54,7 +54,7 @@ export default function TabLayout() {
           paddingTop: 8,
         },
         swipeEnabled: true,
-        animationEnabled: true,
+        animationEnabled: false,
       }}
     >
       <MaterialTopTabs.Screen
