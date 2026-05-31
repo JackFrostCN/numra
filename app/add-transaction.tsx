@@ -1,18 +1,19 @@
 import { Palette, Radius, Spacing } from '@/constants/theme';
-import { addTransaction } from '@/db/queries';
+import { addTransaction, getTransactionById, updateTransaction } from '@/db/queries';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
 import type { TransactionSource } from '@/types';
-import { getTodayISO } from '@/utils/helpers';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 export default function AddTransactionModal() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const isEditing = !!id;
 
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
@@ -20,7 +21,27 @@ export default function AddTransactionModal() {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [source, setSource] = useState<TransactionSource>('bank');
+  const [source, setSource] = useState<TransactionSource>('hand'); // Default to "hand" (Hand Cash)
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      getTransactionById(db, Number(id))
+        .then((txn) => {
+          if (txn) {
+            setType(txn.type);
+            setAmount(txn.amount.toString());
+            setCategory(txn.category);
+            setDescription(txn.description || '');
+            setDate(txn.date);
+            setSource(txn.source);
+          }
+        })
+        .catch((err) => console.error('Error loading transaction details:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [id, db]);
 
   const isExpense = type === 'expense';
   const categories = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -45,16 +66,30 @@ export default function AddTransactionModal() {
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount))) return;
 
-    await addTransaction(db, {
+    const data = {
       type,
       amount: Number(amount),
       category,
       description: description.trim() || undefined,
       date,
-      source: isExpense ? source : 'bank',
-    });
+      source,
+    };
+
+    if (isEditing && id) {
+      await updateTransaction(db, Number(id), data);
+    } else {
+      await addTransaction(db, data);
+    }
     router.back();
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.bg, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Palette.accent} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -62,6 +97,7 @@ export default function AddTransactionModal() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
     >
+      <Stack.Screen options={{ title: isEditing ? 'Edit Transaction' : 'Add Transaction' }} />
       <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.typeToggle}>
         <Pressable
@@ -143,8 +179,9 @@ export default function AddTransactionModal() {
       />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveTxt}>Save Transaction</Text>
+          <Text style={s.saveTxt}>{isEditing ? 'Update Transaction' : 'Save Transaction'}</Text>
         </Pressable>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );

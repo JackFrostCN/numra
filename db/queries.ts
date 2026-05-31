@@ -92,6 +92,39 @@ export async function deleteTransaction(db: SQLiteDatabase, id: number) {
   await db.runAsync('DELETE FROM transactions WHERE id = ?', id);
 }
 
+export async function getTransactionById(
+  db: SQLiteDatabase,
+  id: number
+): Promise<Transaction | null> {
+  return db.getFirstAsync<Transaction>('SELECT * FROM transactions WHERE id = ?', id);
+}
+
+export async function updateTransaction(
+  db: SQLiteDatabase,
+  id: number,
+  data: {
+    type: 'income' | 'expense';
+    amount: number;
+    category: string;
+    description?: string;
+    date: string;
+    source: 'bank' | 'hand';
+  }
+) {
+  await db.runAsync(
+    `UPDATE transactions 
+     SET type = ?, amount = ?, category = ?, description = ?, date = ?, source = ? 
+     WHERE id = ?`,
+    data.type,
+    data.amount,
+    data.category,
+    data.description ?? null,
+    data.date,
+    data.source,
+    id
+  );
+}
+
 // ════════════════════════════════════════════════
 // LOANS
 // ════════════════════════════════════════════════

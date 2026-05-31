@@ -83,7 +83,11 @@ export default function TransactionsScreen() {
               <Text style={s.dateLbl}>{formatDateShort(date)}</Text>
               {txns.map((txn) => (
                 <Card key={txn.id} style={s.txnCard}>
-                  <Pressable onLongPress={() => handleDelete(txn.id)} style={s.txnRow}>
+                  <Pressable 
+                    onPress={() => router.push({ pathname: '/add-transaction', params: { id: txn.id } })}
+                    onLongPress={() => handleDelete(txn.id)} 
+                    style={s.txnRow}
+                  >
                     <CategoryBadge category={txn.category} />
                     <View style={s.txnInfo}>
                       <Text style={s.txnCat}>{txn.category}</Text>
