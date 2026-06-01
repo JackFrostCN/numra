@@ -82,7 +82,20 @@ export default function BillsScreen() {
             const days = daysUntilDue(bill.due_day);
             
             return (
-              <Card key={bill.id} style={[s.billCard, bill.is_paid && s.billCardPaid]}>
+              <Card 
+                key={bill.id} 
+                style={[s.billCard, bill.is_paid && s.billCardPaid]}
+                onPress={() => router.push({ pathname: '/add-bill', params: { id: bill.id } })}
+                onLongPress={() => {
+                  Alert.alert('Delete Bill', `Are you sure you want to delete ${bill.name}?`, [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: async () => {
+                      await deleteBill(db, bill.id);
+                      loadData();
+                    }}
+                  ]);
+                }}
+              >
                 <View style={s.billRow}>
                   <CategoryBadge category={bill.category} />
                   <View style={s.billInfo}>
@@ -99,21 +112,6 @@ export default function BillsScreen() {
                         style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
                       >
                         <MaterialIcons name="check" size={16} color={bill.is_paid ? Palette.white : Palette.textMuted} />
-                      </Pressable>
-                      <Pressable 
-                        onPress={() => {
-                          Alert.alert('Bill Options', bill.name, [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Edit', onPress: () => router.push({ pathname: '/add-bill', params: { id: bill.id } }) },
-                            { text: 'Delete', style: 'destructive', onPress: async () => {
-                              await deleteBill(db, bill.id);
-                              loadData();
-                            }}
-                          ]);
-                        }}
-                        style={s.optionsBtn}
-                      >
-                        <MaterialIcons name="more-vert" size={20} color={Palette.textMuted} />
                       </Pressable>
                     </View>
                   </View>
@@ -149,7 +147,6 @@ const s = StyleSheet.create({
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   checkBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' },
   checkBtnPaid: { backgroundColor: Palette.success, borderColor: Palette.success },
-  optionsBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   textPaid: { color: Palette.textMuted, textDecorationLine: 'line-through' },
   textOverdue: { color: Palette.danger },
 });

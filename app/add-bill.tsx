@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Platform, KeyboardAvoidingView } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { addBill, getBillById, updateBill } from '@/db/queries';
 import { BILL_CATEGORIES } from '@/types';
 import { useEffect } from 'react';
@@ -58,6 +58,7 @@ export default function AddBillModal() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
     >
+      <Stack.Screen options={{ title: isEditing ? 'Edit Bill' : 'Add Bill' }} />
       <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <Text style={s.label}>Bill Name</Text>
       <TextInput

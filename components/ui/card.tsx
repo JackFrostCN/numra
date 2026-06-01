@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils';
 
 export interface CardProps extends ViewProps {
   onPress?: () => void;
+  onLongPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }
 
-const Card = React.forwardRef<View, CardProps>(({ className, onPress, style, children, ...props }, ref) => {
+const Card = React.forwardRef<View, CardProps>(({ className, onPress, onLongPress, style, children, ...props }, ref) => {
   const content = (
     <View
       ref={ref}
@@ -22,9 +23,9 @@ const Card = React.forwardRef<View, CardProps>(({ className, onPress, style, chi
     </View>
   );
 
-  if (onPress) {
+  if (onPress || onLongPress) {
     return (
-      <Pressable onPress={onPress}>
+      <Pressable onPress={onPress} onLongPress={onLongPress}>
         {content}
       </Pressable>
     );
