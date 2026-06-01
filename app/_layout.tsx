@@ -85,6 +85,16 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="deposit"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                title: 'Deposit Cash',
+                headerStyle: { backgroundColor: Palette.bgCard },
+                headerTintColor: Palette.textPrimary,
+              }}
+            />
+            <Stack.Screen
               name="loan-details"
               options={{
                 presentation: 'card',

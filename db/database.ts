@@ -4,7 +4,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 4;
+const DATABASE_VERSION = 5;
 
 /**
  * Initialize and migrate the database schema.
@@ -90,6 +90,14 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         created_at TEXT DEFAULT (datetime('now'))
       );
 
+      CREATE TABLE IF NOT EXISTS deposits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -101,6 +109,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       CREATE INDEX IF NOT EXISTS idx_loans_completed ON loans(is_completed);
       CREATE INDEX IF NOT EXISTS idx_bill_payments_month ON bill_payments(month);
       CREATE INDEX IF NOT EXISTS idx_withdrawals_date ON withdrawals(date);
+      CREATE INDEX IF NOT EXISTS idx_deposits_date ON deposits(date);
     `);
 
     // Insert default settings
@@ -166,6 +175,21 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       ALTER TABLE transactions ADD COLUMN linked_id INTEGER;
     `);
     currentVersion = 4;
+  }
+
+  // Migration: v4 → v5
+  if (currentVersion === 4) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS deposits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_deposits_date ON deposits(date);
+    `);
+    currentVersion = 5;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

@@ -1,30 +1,54 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, Pressable, Platform, KeyboardAvoidingView } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useRouter } from 'expo-router';
-import { addBill } from '@/db/queries';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { addBill, getBillById, updateBill } from '@/db/queries';
 import { BILL_CATEGORIES } from '@/types';
+import { useEffect } from 'react';
 import { Palette, Spacing, Radius } from '@/constants/theme';
 
 export default function AddBillModal() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const isEditing = !!id;
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<string>(BILL_CATEGORIES[0]);
   const [dueDay, setDueDay] = useState('');
 
+  useEffect(() => {
+    if (id) {
+      getBillById(db, Number(id)).then(bill => {
+        if (bill) {
+          setName(bill.name);
+          setAmount(bill.amount.toString());
+          setCategory(bill.category);
+          setDueDay(bill.due_day.toString());
+        }
+      });
+    }
+  }, [id, db]);
+
   const handleSave = async () => {
     if (!name.trim() || !amount || isNaN(Number(amount)) || !dueDay || isNaN(Number(dueDay))) return;
-    
-    await addBill(db, {
-      name: name.trim(),
-      amount: Number(amount),
-      category,
-      due_day: parseInt(dueDay, 10),
-      is_recurring: true,
-    });
+    if (isEditing) {
+      await updateBill(db, Number(id), {
+        name: name.trim(),
+        amount: Number(amount),
+        category,
+        due_day: parseInt(dueDay, 10),
+      });
+    } else {
+      await addBill(db, {
+        name: name.trim(),
+        amount: Number(amount),
+        category,
+        due_day: parseInt(dueDay, 10),
+        is_recurring: true,
+      });
+    }
     router.back();
   };
 
@@ -80,7 +104,7 @@ export default function AddBillModal() {
       </View>
 
         <Pressable style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveTxt}>Save Bill</Text>
+          <Text style={s.saveTxt}>{isEditing ? 'Update Bill' : 'Save Bill'}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

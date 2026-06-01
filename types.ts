@@ -116,6 +116,14 @@ export interface Withdrawal {
   created_at: string;
 }
 
+export interface Deposit {
+  id: number;
+  amount: number;
+  date: string;
+  note: string | null;
+  created_at: string;
+}
+
 // ── Computed/View Types ───────────────────────
 
 export interface MonthlyTotals {

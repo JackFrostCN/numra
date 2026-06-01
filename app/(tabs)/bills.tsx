@@ -10,7 +10,7 @@ import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Palette, Spacing, Radius } from '@/constants/theme';
-import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid } from '@/db/queries';
+import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid, deleteBill } from '@/db/queries';
 import { formatCurrency, getCurrentYearMonth, getYearMonth, daysUntilDue, isBillOverdue } from '@/utils/helpers';
 import type { Bill } from '@/types';
 
@@ -93,12 +93,29 @@ export default function BillsScreen() {
                   </View>
                   <View style={s.billRight}>
                     <Text style={[s.billAmt, bill.is_paid && s.textPaid]}>{formatCurrency(bill.amount)}</Text>
-                    <Pressable 
-                      onPress={() => togglePaid(bill.id, bill.is_paid)}
-                      style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
-                    >
-                      <MaterialIcons name="check" size={16} color={bill.is_paid ? Palette.white : Palette.textMuted} />
-                    </Pressable>
+                    <View style={s.actionsRow}>
+                      <Pressable 
+                        onPress={() => togglePaid(bill.id, bill.is_paid)}
+                        style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
+                      >
+                        <MaterialIcons name="check" size={16} color={bill.is_paid ? Palette.white : Palette.textMuted} />
+                      </Pressable>
+                      <Pressable 
+                        onPress={() => {
+                          Alert.alert('Bill Options', bill.name, [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Edit', onPress: () => router.push({ pathname: '/add-bill', params: { id: bill.id } }) },
+                            { text: 'Delete', style: 'destructive', onPress: async () => {
+                              await deleteBill(db, bill.id);
+                              loadData();
+                            }}
+                          ]);
+                        }}
+                        style={s.optionsBtn}
+                      >
+                        <MaterialIcons name="more-vert" size={20} color={Palette.textMuted} />
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
               </Card>
@@ -129,8 +146,10 @@ const s = StyleSheet.create({
   billDue: { fontSize: 13, color: Palette.textMuted, marginTop: 2 },
   billRight: { alignItems: 'flex-end', gap: Spacing.sm },
   billAmt: { fontSize: 15, fontWeight: '600', color: Palette.textPrimary },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   checkBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' },
   checkBtnPaid: { backgroundColor: Palette.success, borderColor: Palette.success },
+  optionsBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   textPaid: { color: Palette.textMuted, textDecorationLine: 'line-through' },
   textOverdue: { color: Palette.danger },
 });

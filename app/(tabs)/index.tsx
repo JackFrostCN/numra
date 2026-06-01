@@ -206,13 +206,22 @@ export default function DashboardScreen() {
           <Card style={styles.bankCard}>
             <View style={styles.bankHeader}>
               <Text style={styles.bankTitle}>My Accounts</Text>
-              <Pressable 
-                style={styles.withdrawBtnSmall}
-                onPress={() => router.push('/withdraw')}
-              >
-                <MaterialIcons name="arrow-downward" size={14} color={Palette.white} />
-                <Text style={styles.withdrawBtnTxt}>Withdraw</Text>
-              </Pressable>
+              <View style={styles.actionBtnsRow}>
+                <Pressable 
+                  style={[styles.actionBtnSmall, { backgroundColor: Palette.bank }]}
+                  onPress={() => router.push('/deposit')}
+                >
+                  <MaterialIcons name="arrow-upward" size={14} color={Palette.white} />
+                  <Text style={styles.actionBtnTxt}>Deposit</Text>
+                </Pressable>
+                <Pressable 
+                  style={[styles.actionBtnSmall, { backgroundColor: Palette.wallet }]}
+                  onPress={() => router.push('/withdraw')}
+                >
+                  <MaterialIcons name="arrow-downward" size={14} color={Palette.white} />
+                  <Text style={styles.actionBtnTxt}>Withdraw</Text>
+                </Pressable>
+              </View>
             </View>
 
             <View style={styles.accountsRow}>
@@ -552,16 +561,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.textPrimary,
   },
-  withdrawBtnSmall: {
+  actionBtnsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtnSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.wallet,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
     gap: 4,
   },
-  withdrawBtnTxt: {
+  actionBtnTxt: {
     color: Palette.white,
     fontSize: 12,
     fontWeight: '600',

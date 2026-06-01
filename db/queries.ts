@@ -11,6 +11,7 @@ import type {
   BillPayment,
   MonthlyTotals,
   Withdrawal,
+  Deposit,
   BankSummary,
 } from '@/types';
 
@@ -317,7 +318,23 @@ export async function markLoanComplete(db: SQLiteDatabase, id: number) {
 }
 
 export async function deleteLoan(db: SQLiteDatabase, id: number) {
-  await db.runAsync('DELETE FROM loans WHERE id = ?', id);
+  await db.withTransactionAsync(async () => {
+    // Get all loan payments associated with this loan
+    const payments = await db.getAllAsync<{id: number}>('SELECT id FROM loan_payments WHERE loan_id = ?', id);
+    const paymentIds = payments.map(p => p.id);
+    
+    // Delete transactions related to loan payments
+    if (paymentIds.length > 0) {
+      const placeholders = paymentIds.map(() => '?').join(',');
+      await db.runAsync(`DELETE FROM transactions WHERE linked_type = 'loan_payment' AND linked_id IN (${placeholders})`, ...paymentIds);
+    }
+    
+    // Delete transaction related to the initial loan creation
+    await db.runAsync("DELETE FROM transactions WHERE linked_type = 'loan' AND linked_id = ?", id);
+    
+    // Delete the loan (loan_payments will be deleted via ON DELETE CASCADE in sqlite)
+    await db.runAsync('DELETE FROM loans WHERE id = ?', id);
+  });
 }
 
 // ════════════════════════════════════════════════
@@ -424,8 +441,45 @@ export async function isBillPaidForMonth(
   return (result?.count ?? 0) > 0;
 }
 
+export async function getBillById(db: SQLiteDatabase, id: number): Promise<Bill | null> {
+  return db.getFirstAsync<Bill>('SELECT * FROM bills WHERE id = ?', id);
+}
+
+export async function updateBill(
+  db: SQLiteDatabase,
+  id: number,
+  data: {
+    name: string;
+    amount: number;
+    category: string;
+    due_day: number;
+  }
+) {
+  await db.runAsync(
+    'UPDATE bills SET name = ?, amount = ?, category = ?, due_day = ? WHERE id = ?',
+    data.name,
+    data.amount,
+    data.category,
+    data.due_day,
+    id
+  );
+}
+
 export async function deleteBill(db: SQLiteDatabase, id: number) {
-  await db.runAsync('DELETE FROM bills WHERE id = ?', id);
+  await db.withTransactionAsync(async () => {
+    // Get all bill payments associated with this bill
+    const payments = await db.getAllAsync<{id: number}>('SELECT id FROM bill_payments WHERE bill_id = ?', id);
+    const paymentIds = payments.map(p => p.id);
+    
+    // Delete transactions related to bill payments
+    if (paymentIds.length > 0) {
+      const placeholders = paymentIds.map(() => '?').join(',');
+      await db.runAsync(`DELETE FROM transactions WHERE linked_type = 'bill_payment' AND linked_id IN (${placeholders})`, ...paymentIds);
+    }
+    
+    // Delete the bill (bill_payments will be deleted via ON DELETE CASCADE in sqlite)
+    await db.runAsync('DELETE FROM bills WHERE id = ?', id);
+  });
 }
 
 export async function getMonthlyBillsTotal(
@@ -474,6 +528,43 @@ export async function deleteWithdrawal(db: SQLiteDatabase, id: number) {
   await db.runAsync('DELETE FROM withdrawals WHERE id = ?', id);
 }
 
+// ════════════════════════════════════════════════
+// DEPOSITS (Hand → Bank)
+// ════════════════════════════════════════════════
+
+export async function addDeposit(
+  db: SQLiteDatabase,
+  data: {
+    amount: number;
+    date: string;
+    note?: string;
+  }
+) {
+  const result = await db.runAsync(
+    'INSERT INTO deposits (amount, date, note) VALUES (?, ?, ?)',
+    data.amount,
+    data.date,
+    data.note ?? null
+  );
+  return result.lastInsertRowId;
+}
+
+export async function getDepositsByMonth(
+  db: SQLiteDatabase,
+  yearMonth: string
+): Promise<Deposit[]> {
+  return db.getAllAsync<Deposit>(
+    `SELECT * FROM deposits 
+     WHERE strftime('%Y-%m', date) = ? 
+     ORDER BY date DESC, id DESC`,
+    yearMonth
+  );
+}
+
+export async function deleteDeposit(db: SQLiteDatabase, id: number) {
+  await db.runAsync('DELETE FROM deposits WHERE id = ?', id);
+}
+
 export async function getBankSummary(
   db: SQLiteDatabase
 ): Promise<{ bankBalance: number; handBalance: number }> {
@@ -482,6 +573,7 @@ export async function getBankSummary(
   const [
     transactionsRaw,
     withdrawalsRaw,
+    depositsRaw,
     salarySetting
   ] = await Promise.all([
     db.getAllAsync<{source: string, type: string, total: number}>(
@@ -489,6 +581,9 @@ export async function getBankSummary(
     ),
     db.getFirstAsync<{total: number}>(
       `SELECT COALESCE(SUM(amount),0) as total FROM withdrawals`
+    ),
+    db.getFirstAsync<{total: number}>(
+      `SELECT COALESCE(SUM(amount),0) as total FROM deposits`
     ),
     db.getFirstAsync<{value: string}>(
       `SELECT value FROM settings WHERE key = 'monthly_budget'`
@@ -504,10 +599,11 @@ export async function getBankSummary(
   const handExpense = getVal(transactionsRaw, t => t.source === 'hand' && t.type === 'expense');
 
   const totalWithdrawn = withdrawalsRaw?.total ?? 0;
+  const totalDeposited = depositsRaw?.total ?? 0;
   const salary = Number(salarySetting?.value) || 0;
 
-  const bankBalance = salary + bankIncome - bankExpense - totalWithdrawn;
-  const handBalance = handIncome + totalWithdrawn - handExpense;
+  const bankBalance = salary + bankIncome - bankExpense - totalWithdrawn + totalDeposited;
+  const handBalance = handIncome + totalWithdrawn - handExpense - totalDeposited;
 
   return { bankBalance, handBalance };
 }
