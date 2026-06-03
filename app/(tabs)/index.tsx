@@ -50,6 +50,7 @@ export default function DashboardScreen() {
   const [bankSummary, setBankSummary] = useState<BankSummary | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [hideBalances, setHideBalances] = useState(true);
 
   const greeting = useMemo(() => getGreeting(), [refreshKey]);
   const todayDate = useMemo(
@@ -129,8 +130,8 @@ export default function DashboardScreen() {
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.dateText}>{todayDate}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -148,22 +149,65 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Summary Cards */}
-        <View style={styles.summaryRow}>
-          <SummaryCard
-            title="Income"
-            amount={totals.income}
-            icon="trending-up"
-            gradient={Palette.gradientIncome}
-          />
-          <View style={{ width: Spacing.md }} />
-          <SummaryCard
-            title="Expenses"
-            amount={totals.expenses}
-            icon="trending-down"
-            gradient={Palette.gradientExpense}
-          />
-        </View>
+        {/* Bank & Wallet Card */}
+        {bankSummary && (
+          <Card style={styles.bankCard}>
+            <View style={styles.bankHeader}>
+              <Text style={styles.bankTitle}>My Accounts</Text>
+              <View style={styles.actionBtnsRow}>
+                <Pressable 
+                  style={[styles.actionBtnSmall, { backgroundColor: Palette.bank }]}
+                  onPress={() => router.push('/deposit')}
+                >
+                  <MaterialIcons name="arrow-upward" size={14} color={Palette.white} />
+                  <Text style={styles.actionBtnTxt}>Deposit</Text>
+                </Pressable>
+                <Pressable 
+                  style={[styles.actionBtnSmall, { backgroundColor: Palette.wallet }]}
+                  onPress={() => router.push('/withdraw')}
+                >
+                  <MaterialIcons name="arrow-downward" size={14} color={Palette.white} />
+                  <Text style={styles.actionBtnTxt}>Withdraw</Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.accountsRow}>
+              {/* Bank Account */}
+              <View style={styles.accountCol}>
+                <View style={styles.accountLabelRow}>
+                  <View style={[styles.accountDot, { backgroundColor: Palette.bank }]} />
+                  <Text style={styles.accountLabel}>Bank</Text>
+                </View>
+                <Text style={styles.accountAmount}>
+                  {hideBalances ? '••••' : formatCurrency(bankSummary.bankBalance)}
+                </Text>
+              </View>
+
+              <View style={styles.accountDivider} />
+
+              {/* Hand/Wallet */}
+              <View style={styles.accountCol}>
+                <View style={styles.accountLabelRow}>
+                  <View style={[styles.accountDot, { backgroundColor: Palette.wallet }]} />
+                  <Text style={styles.accountLabel}>Hand Cash</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm, paddingRight: 4 }}>
+                  <Text style={[styles.accountAmount, { marginBottom: 0 }]}>
+                    {hideBalances ? '••••' : formatCurrency(bankSummary.handBalance)}
+                  </Text>
+                  <Pressable onPress={() => setHideBalances(!hideBalances)} style={{ padding: 4, marginTop: -4 }}>
+                    <MaterialIcons 
+                      name={hideBalances ? 'visibility-off' : 'visibility'} 
+                      size={20} 
+                      color={Palette.textSecondary} 
+                    />
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}
 
         {/* Balance Card */}
         <Card style={styles.balanceCard}>
@@ -201,56 +245,24 @@ export default function DashboardScreen() {
           )}
         </Card>
 
-        {/* Bank & Wallet Card */}
-        {bankSummary && (
-          <Card style={styles.bankCard}>
-            <View style={styles.bankHeader}>
-              <Text style={styles.bankTitle}>My Accounts</Text>
-              <View style={styles.actionBtnsRow}>
-                <Pressable 
-                  style={[styles.actionBtnSmall, { backgroundColor: Palette.bank }]}
-                  onPress={() => router.push('/deposit')}
-                >
-                  <MaterialIcons name="arrow-upward" size={14} color={Palette.white} />
-                  <Text style={styles.actionBtnTxt}>Deposit</Text>
-                </Pressable>
-                <Pressable 
-                  style={[styles.actionBtnSmall, { backgroundColor: Palette.wallet }]}
-                  onPress={() => router.push('/withdraw')}
-                >
-                  <MaterialIcons name="arrow-downward" size={14} color={Palette.white} />
-                  <Text style={styles.actionBtnTxt}>Withdraw</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <View style={styles.accountsRow}>
-              {/* Bank Account */}
-              <View style={styles.accountCol}>
-                <View style={styles.accountLabelRow}>
-                  <View style={[styles.accountDot, { backgroundColor: Palette.bank }]} />
-                  <Text style={styles.accountLabel}>Bank</Text>
-                </View>
-                <Text style={styles.accountAmount}>
-                  {formatCurrency(bankSummary.bankBalance)}
-                </Text>
-              </View>
-
-              <View style={styles.accountDivider} />
-
-              {/* Hand/Wallet */}
-              <View style={styles.accountCol}>
-                <View style={styles.accountLabelRow}>
-                  <View style={[styles.accountDot, { backgroundColor: Palette.wallet }]} />
-                  <Text style={styles.accountLabel}>Hand Cash</Text>
-                </View>
-                <Text style={styles.accountAmount}>
-                  {formatCurrency(bankSummary.handBalance)}
-                </Text>
-              </View>
-            </View>
-          </Card>
-        )}
+        {/* Summary Cards */}
+        <View style={styles.summaryRow}>
+          <SummaryCard
+            title="Income"
+            amount={totals.income}
+            icon="trending-up"
+            gradient={Palette.gradientIncome}
+            small
+          />
+          <View style={{ width: Spacing.md }} />
+          <SummaryCard
+            title="Expenses"
+            amount={totals.expenses}
+            icon="trending-down"
+            gradient={Palette.gradientExpense}
+            small
+          />
+        </View>
 
         {/* Quick Stats */}
         <View style={styles.quickStats}>
@@ -388,15 +400,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: Palette.textSecondary,
-    marginBottom: 4,
   },
   dateText: {
     fontSize: 22,
     fontWeight: '700',
     color: Palette.textPrimary,
+    marginBottom: 4,
   },
   scrollView: {
     flex: 1,

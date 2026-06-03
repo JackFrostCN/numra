@@ -10,6 +10,7 @@ interface SummaryCardProps {
   icon: string;
   gradient: readonly [string, string, ...string[]];
   subtitle?: string;
+  small?: boolean;
 }
 
 export function SummaryCard({
@@ -18,21 +19,22 @@ export function SummaryCard({
   icon,
   gradient,
   subtitle,
+  small,
 }: SummaryCardProps) {
   return (
     <LinearGradient
       colors={gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.card}
+      style={[styles.card, small && styles.cardSmall]}
     >
-      <View style={styles.header}>
-        <View style={styles.iconContainer}>
-          <MaterialIcons name={icon as any} size={20} color="rgba(255,255,255,0.9)" />
+      <View style={[styles.header, small && styles.headerSmall]}>
+        <View style={[styles.iconContainer, small && styles.iconContainerSmall]}>
+          <MaterialIcons name={icon as any} size={small ? 14 : 20} color="rgba(255,255,255,0.9)" />
         </View>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, small && styles.titleSmall]}>{title}</Text>
       </View>
-      <Text style={styles.amount}>{formatCurrency(amount)}</Text>
+      <Text style={[styles.amount, small && styles.amountSmall]}>{formatCurrency(amount)}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </LinearGradient>
   );
@@ -46,10 +48,19 @@ const styles = StyleSheet.create({
     minHeight: 110,
     justifyContent: 'space-between',
   },
+  cardSmall: {
+    minHeight: 70,
+    padding: Spacing.sm,
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+  },
+  headerSmall: {
+    gap: Spacing.xs,
   },
   iconContainer: {
     width: 32,
@@ -59,16 +70,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconContainerSmall: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+  },
   title: {
     fontSize: 13,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.85)',
+  },
+  titleSmall: {
+    fontSize: 11,
   },
   amount: {
     fontSize: 22,
     fontWeight: '700',
     color: '#FFFFFF',
     marginTop: Spacing.sm,
+  },
+  amountSmall: {
+    fontSize: 16,
+    marginTop: 0,
   },
   subtitle: {
     fontSize: 12,
