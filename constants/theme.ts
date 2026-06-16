@@ -1,36 +1,26 @@
 /**
  * Numra — Design System & Theme
- * Premium dark-first financial tracker theme with emerald accent.
+ * Dual-theme financial tracker: dark + light (system default).
  */
 
 import { Platform } from 'react-native';
 
-// ── Core Palette ──────────────────────────────
+// ── Palette Type ──────────────────────────────
 
-export const Palette = {
-  // Background layers (dark → lighter)
-  bg: '#0B0F1A',
-  bgCard: '#141926',
-  bgElevated: '#1C2333',
-  bgInput: '#1E2638',
+export type PaletteType = typeof DarkPalette;
 
-  // Borders & dividers
-  border: '#252D3D',
-  borderLight: '#2A3349',
+// ── Shared Semantic Colors ────────────────────
+// These are identical in both themes — they're designed
+// to be legible on both light and dark backgrounds.
 
-  // Text hierarchy
-  textPrimary: '#F1F5F9',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  textInverse: '#0F172A',
-
+const SemanticColors = {
   // Accent — Teal
   accent: '#14B8A6',
   accentLight: '#5EEAD4',
   accentDark: '#0D9488',
   accentMuted: 'rgba(20, 184, 166, 0.15)',
 
-  // Semantic — Financial (shadcn-inspired muted palette)
+  // Semantic — Financial
   income: '#14B8A6',
   incomeBg: 'rgba(20, 184, 166, 0.12)',
   expense: '#F43F5E',
@@ -50,24 +40,82 @@ export const Palette = {
   danger: '#F43F5E',
   info: '#6366F1',
 
-  // Gradients (shadcn-style muted tones)
-  gradientIncome: ['#0D9488', '#14B8A6'] as const,
-  gradientExpense: ['#E11D48', '#F43F5E'] as const,
-  gradientBalance: ['#4338CA', '#6366F1'] as const,
-  gradientCard: ['#141926', '#1C2333'] as const,
-  gradientAccent: ['#0D9488', '#5EEAD4'] as const,
-  gradientBank: ['#2563EB', '#3B82F6'] as const,
-  gradientWallet: ['#EA580C', '#F97316'] as const,
-
-  // Tab bar
-  tabBar: '#0E1322',
-  tabBarBorder: '#1C2333',
+  // Gradients
+  gradientIncome: ['#0D9488', '#14B8A6'] as [string, string],
+  gradientExpense: ['#E11D48', '#F43F5E'] as [string, string],
+  gradientBalance: ['#4338CA', '#6366F1'] as [string, string],
+  gradientAccent: ['#0D9488', '#5EEAD4'] as [string, string],
+  gradientBank: ['#2563EB', '#3B82F6'] as [string, string],
+  gradientWallet: ['#EA580C', '#F97316'] as [string, string],
 
   // Misc
   white: '#FFFFFF',
   black: '#000000',
   overlay: 'rgba(0, 0, 0, 0.6)',
 };
+
+// ── Dark Palette ──────────────────────────────
+
+export const DarkPalette = {
+  // Background layers (dark → lighter)
+  bg: '#0B0F1A',
+  bgCard: '#141926',
+  bgElevated: '#1C2333',
+  bgInput: '#1E2638',
+
+  // Borders & dividers
+  border: '#252D3D',
+  borderLight: '#2A3349',
+
+  // Text hierarchy
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textMuted: '#64748B',
+  textInverse: '#0F172A',
+
+  // Tab bar
+  tabBar: '#0E1322',
+  tabBarBorder: '#1C2333',
+
+  // Card gradient (for LinearGradient cards)
+  gradientCard: ['#141926', '#1C2333'] as [string, string],
+
+  // Spread shared semantic colors
+  ...SemanticColors,
+};
+
+// ── Light Palette (from design.md "Trustworthy Modernism") ──
+
+export const LightPalette: PaletteType = {
+  // Background layers (light → slightly darker)
+  bg: '#F8FAFC',
+  bgCard: '#FFFFFF',
+  bgElevated: '#F1F5F9',
+  bgInput: '#F1F5F9',
+
+  // Borders & dividers
+  border: '#E2E8F0',
+  borderLight: '#F1F5F9',
+
+  // Text hierarchy
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  textInverse: '#F1F5F9',
+
+  // Tab bar
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E2E8F0',
+
+  // Card gradient
+  gradientCard: ['#FFFFFF', '#F8FAFC'] as [string, string],
+
+  // Spread shared semantic colors
+  ...SemanticColors,
+};
+
+// ── Legacy alias (for any remaining direct imports during migration) ──
+export const Palette = DarkPalette;
 
 // ── Spacing Scale ─────────────────────────────
 
@@ -115,27 +163,3 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
-
-// ── Legacy Colors (kept for ThemedText/ThemedView compatibility) ──
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: Palette.textPrimary,
-    background: Palette.bg,
-    tint: Palette.accent,
-    icon: Palette.textMuted,
-    tabIconDefault: Palette.textMuted,
-    tabIconSelected: Palette.accent,
-  },
-};

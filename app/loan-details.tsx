@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 
 import { useSQLiteContext } from 'expo-sqlite';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getLoanById, getLoanPayments, recordLoanPayment, markLoanComplete, deleteLoan } from '@/db/queries';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { formatCurrency, formatDateShort, getTodayISO } from '@/utils/helpers';
 import type { Loan, LoanPayment, TransactionSource } from '@/types';
 import { Card } from '@/components/ui/card';
@@ -14,6 +15,7 @@ export default function LoanDetailsScreen() {
   const { id } = useLocalSearchParams();
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
 
   const [loan, setLoan] = useState<Loan | null>(null);
   const [payments, setPayments] = useState<LoanPayment[]>([]);
@@ -53,18 +55,20 @@ export default function LoanDetailsScreen() {
     ]);
   };
 
+  const s = createStyles(colors);
+
   if (!loan) return <View style={s.container} />;
 
   const isCompleted = loan.is_completed === 1;
   const progress = (loan.total_amount - loan.remaining_amount) / loan.total_amount;
-  const color = isCompleted ? Palette.success : loan.type === 'borrowed' ? Palette.expense : Palette.income;
+  const statusColor = isCompleted ? colors.success : loan.type === 'borrowed' ? colors.expense : colors.income;
 
   return (
     <View style={s.container}>
       <ScrollView style={s.list} contentContainerStyle={s.content}>
         <View style={s.header}>
           <Text style={s.person}>{loan.person_name}</Text>
-          <Text style={[s.typeTxt, { color }]}>{loan.type === 'borrowed' ? 'I Owe' : 'Owes Me'}</Text>
+          <Text style={[s.typeTxt, { color: statusColor }]}>{loan.type === 'borrowed' ? 'I Owe' : 'Owes Me'}</Text>
         </View>
 
         <Card style={s.overview}>
@@ -74,7 +78,7 @@ export default function LoanDetailsScreen() {
             <Text style={s.progLbl}>Total: {formatCurrency(loan.total_amount)}</Text>
             <Text style={s.progLbl}>{Math.round(progress * 100)}%</Text>
           </View>
-          <ProgressBar progress={progress} color={color} />
+          <ProgressBar progress={progress} color={statusColor} />
         </Card>
 
         {!isCompleted && (
@@ -85,14 +89,14 @@ export default function LoanDetailsScreen() {
                 style={[s.sourceBtn, paySource === 'bank' && s.sourceBankActive]}
                 onPress={() => setPaySource('bank')}
               >
-                <MaterialIcons name="account-balance" size={16} color={paySource === 'bank' ? Palette.white : Palette.textMuted} />
+                <MaterialIcons name="account-balance" size={16} color={paySource === 'bank' ? colors.white : colors.textMuted} />
                 <Text style={[s.sourceTxt, paySource === 'bank' && s.sourceActiveTxt]}>Bank</Text>
               </Pressable>
               <Pressable
                 style={[s.sourceBtn, paySource === 'hand' && s.sourceHandActive]}
                 onPress={() => setPaySource('hand')}
               >
-                <MaterialIcons name="account-balance-wallet" size={16} color={paySource === 'hand' ? Palette.white : Palette.textMuted} />
+                <MaterialIcons name="account-balance-wallet" size={16} color={paySource === 'hand' ? colors.white : colors.textMuted} />
                 <Text style={[s.sourceTxt, paySource === 'hand' && s.sourceActiveTxt]}>Hand</Text>
               </Pressable>
             </View>
@@ -103,9 +107,9 @@ export default function LoanDetailsScreen() {
                 onChangeText={setPayAmount}
                 keyboardType="numeric"
                 placeholder="Amount"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
-              <Pressable style={[s.payBtn, { backgroundColor: color }]} onPress={handlePayment}>
+              <Pressable style={[s.payBtn, { backgroundColor: statusColor }]} onPress={handlePayment}>
                 <Text style={s.payTxt}>Record</Text>
               </Pressable>
             </View>
@@ -126,9 +130,9 @@ export default function LoanDetailsScreen() {
                 <MaterialIcons
                   name={p.source === 'bank' ? 'account-balance' : 'account-balance-wallet'}
                   size={14}
-                  color={p.source === 'bank' ? Palette.bank : Palette.wallet}
+                  color={p.source === 'bank' ? colors.bank : colors.wallet}
                 />
-                <Text style={[s.payItemDate, { color: p.source === 'bank' ? Palette.bank : Palette.wallet }]}>
+                <Text style={[s.payItemDate, { color: p.source === 'bank' ? colors.bank : colors.wallet }]}>
                   {p.source === 'bank' ? 'Bank' : 'Hand'}
                 </Text>
               </View>
@@ -137,7 +141,7 @@ export default function LoanDetailsScreen() {
         )}
         
         <Pressable style={s.delBtn} onPress={handleDelete}>
-          <MaterialIcons name="delete" size={20} color={Palette.danger} />
+          <MaterialIcons name="delete" size={20} color={colors.danger} />
           <Text style={s.delTxt}>Delete Loan</Text>
         </Pressable>
       </ScrollView>
@@ -145,36 +149,36 @@ export default function LoanDetailsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   list: { flex: 1 },
   content: { padding: Spacing.lg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.lg },
-  person: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
+  person: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
   typeTxt: { fontSize: 14, fontWeight: '600' },
   overview: { marginBottom: Spacing.lg },
-  lbl: { fontSize: 13, color: Palette.textSecondary, marginBottom: 4 },
-  remAmt: { fontSize: 32, fontWeight: '700', color: Palette.textPrimary, marginBottom: Spacing.md },
+  lbl: { fontSize: 13, color: colors.textSecondary, marginBottom: 4 },
+  remAmt: { fontSize: 32, fontWeight: '700', color: colors.textPrimary, marginBottom: Spacing.md },
   progRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
-  progLbl: { fontSize: 12, color: Palette.textMuted },
+  progLbl: { fontSize: 12, color: colors.textMuted },
   payCard: { marginBottom: Spacing.lg, padding: Spacing.md },
-  payLbl: { fontSize: 14, fontWeight: '600', color: Palette.textPrimary, marginBottom: Spacing.sm },
+  payLbl: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: Spacing.sm },
   payRow: { flexDirection: 'row', gap: Spacing.sm },
-  input: { flex: 1, backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 44, color: Palette.textPrimary, borderWidth: 1, borderColor: Palette.border },
+  input: { flex: 1, backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 44, color: colors.textPrimary, borderWidth: 1, borderColor: colors.border },
   payBtn: { height: 44, paddingHorizontal: Spacing.lg, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  payTxt: { color: Palette.white, fontWeight: '600' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary, marginBottom: Spacing.sm },
-  emptyTxt: { color: Palette.textMuted, fontSize: 14, fontStyle: 'italic' },
+  payTxt: { color: colors.white, fontWeight: '600' },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginBottom: Spacing.sm },
+  emptyTxt: { color: colors.textMuted, fontSize: 14, fontStyle: 'italic' },
   sourceToggle: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
-  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },
-  sourceBankActive: { backgroundColor: Palette.bank, borderColor: Palette.bank },
-  sourceHandActive: { backgroundColor: Palette.wallet, borderColor: Palette.wallet },
-  sourceTxt: { fontSize: 14, fontWeight: '500', color: Palette.textMuted },
-  sourceActiveTxt: { color: Palette.white },
-  payItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Palette.borderLight },
-  payItemAmt: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary },
-  payItemDate: { fontSize: 12, color: Palette.textMuted, marginTop: 2 },
+  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.full, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
+  sourceBankActive: { backgroundColor: colors.bank, borderColor: colors.bank },
+  sourceHandActive: { backgroundColor: colors.wallet, borderColor: colors.wallet },
+  sourceTxt: { fontSize: 14, fontWeight: '500', color: colors.textMuted },
+  sourceActiveTxt: { color: colors.white },
+  payItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+  payItemAmt: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  payItemDate: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   payItemSource: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   delBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, marginTop: Spacing.xl * 2, padding: Spacing.md },
-  delTxt: { color: Palette.danger, fontWeight: '600', fontSize: 15 },
+  delTxt: { color: colors.danger, fontWeight: '600', fontSize: 15 },
 });

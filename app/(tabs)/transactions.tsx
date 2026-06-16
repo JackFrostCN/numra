@@ -9,7 +9,8 @@ import { DaySelector } from '@/components/ui/day-selector';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction, getTransactionsByDay, getDailyTotals } from '@/db/queries';
 import { formatCurrency, formatDateShort, getYearMonth, getTodayISO } from '@/utils/helpers';
 import type { Transaction, MonthlyTotals } from '@/types';
@@ -17,6 +18,7 @@ import type { Transaction, MonthlyTotals } from '@/types';
 export default function TransactionsScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState(getTodayISO());
   const [viewMode, setViewMode] = useState<'monthly' | 'daily'>('daily');
@@ -71,6 +73,8 @@ export default function TransactionsScreen() {
   const grouped: Record<string, Transaction[]> = {};
   filtered.forEach((t) => { (grouped[t.date] ??= []).push(t); });
 
+  const s = createStyles(colors);
+
   return (
     <View style={s.container}>
       <View style={s.header}>
@@ -96,17 +100,17 @@ export default function TransactionsScreen() {
       )}
       <View style={s.miniSummary}>
         <View style={s.miniItem}>
-          <Text style={[s.miniAmt, { color: Palette.income }]} numberOfLines={1} adjustsFontSizeToFit>+{formatCurrency(totals.income)}</Text>
+          <Text style={[s.miniAmt, { color: colors.income }]} numberOfLines={1} adjustsFontSizeToFit>+{formatCurrency(totals.income)}</Text>
           <Text style={s.miniLbl}>Income</Text>
         </View>
         <View style={s.divider} />
         <View style={s.miniItem}>
-          <Text style={[s.miniAmt, { color: Palette.expense }]} numberOfLines={1} adjustsFontSizeToFit>-{formatCurrency(totals.expenses)}</Text>
+          <Text style={[s.miniAmt, { color: colors.expense }]} numberOfLines={1} adjustsFontSizeToFit>-{formatCurrency(totals.expenses)}</Text>
           <Text style={s.miniLbl}>Expenses</Text>
         </View>
         <View style={s.divider} />
         <View style={s.miniItem}>
-          <Text style={[s.miniAmt, { color: totals.balance >= 0 ? Palette.income : Palette.expense }]} numberOfLines={1} adjustsFontSizeToFit>
+          <Text style={[s.miniAmt, { color: totals.balance >= 0 ? colors.income : colors.expense }]} numberOfLines={1} adjustsFontSizeToFit>
             {totals.balance > 0 ? '+' : ''}{formatCurrency(totals.balance)}
           </Text>
           <Text style={s.miniLbl}>Balance</Text>
@@ -146,7 +150,7 @@ export default function TransactionsScreen() {
                       <Text style={s.txnCat}>{txn.category}</Text>
                       {txn.description ? <Text style={s.txnDesc} numberOfLines={1}>{txn.description}</Text> : null}
                     </View>
-                    <Text style={[s.txnAmt, { color: txn.type === 'income' ? Palette.income : Palette.expense }]}>
+                    <Text style={[s.txnAmt, { color: txn.type === 'income' ? colors.income : colors.expense }]}>
                       {txn.type === 'income' ? '+' : '-'}{formatCurrency(txn.amount)}
                     </Text>
                   </Pressable>
@@ -162,37 +166,37 @@ export default function TransactionsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
-  viewModeRow: { flexDirection: 'row', backgroundColor: Palette.bgCard, borderRadius: Radius.full, padding: 2, borderWidth: 1, borderColor: Palette.border },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+  viewModeRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderRadius: Radius.full, padding: 2, borderWidth: 1, borderColor: colors.border },
   viewModeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
-  viewModeBtnActive: { backgroundColor: Palette.bgElevated, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
-  viewModeTxt: { fontSize: 12, fontWeight: '500', color: Palette.textMuted },
-  viewModeTxtActive: { color: Palette.textPrimary },
-  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: Palette.bgCard, borderRadius: Radius.lg, padding: Spacing.base, borderWidth: 1, borderColor: Palette.border },
+  viewModeBtnActive: { backgroundColor: colors.bgElevated, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
+  viewModeTxt: { fontSize: 12, fontWeight: '500', color: colors.textMuted },
+  viewModeTxtActive: { color: colors.textPrimary },
+  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, borderRadius: Radius.lg, padding: Spacing.base, borderWidth: 1, borderColor: colors.border },
   miniItem: { flex: 1, alignItems: 'center' },
-  divider: { width: 1, backgroundColor: Palette.border },
+  divider: { width: 1, backgroundColor: colors.border },
   miniAmt: { fontSize: 15, fontWeight: '700' },
-  miniLbl: { fontSize: 12, color: Palette.textMuted, marginTop: 2 },
+  miniLbl: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   filterRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.sm, gap: Spacing.sm },
-  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: Palette.bgCard, borderWidth: 1, borderColor: Palette.border },
-  filterAllActive: { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: Palette.info },
-  filterIncomeActive: { backgroundColor: Palette.incomeBg, borderColor: Palette.income },
-  filterExpenseActive: { backgroundColor: Palette.expenseBg, borderColor: Palette.expense },
-  filterTxt: { fontSize: 13, fontWeight: '500', color: Palette.textMuted },
-  filterAllTxtActive: { color: Palette.info },
-  filterIncomeTxtActive: { color: Palette.income },
-  filterExpenseTxtActive: { color: Palette.expense },
+  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
+  filterAllActive: { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: colors.info },
+  filterIncomeActive: { backgroundColor: colors.incomeBg, borderColor: colors.income },
+  filterExpenseActive: { backgroundColor: colors.expenseBg, borderColor: colors.expense },
+  filterTxt: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+  filterAllTxtActive: { color: colors.info },
+  filterIncomeTxtActive: { color: colors.income },
+  filterExpenseTxtActive: { color: colors.expense },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
   dateGroup: { marginBottom: Spacing.md },
-  dateLbl: { fontSize: 13, fontWeight: '600', color: Palette.textMuted, marginBottom: Spacing.sm, marginLeft: Spacing.xs },
+  dateLbl: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: Spacing.sm, marginLeft: Spacing.xs },
   txnCard: { marginBottom: Spacing.sm },
   txnRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   txnInfo: { flex: 1 },
-  txnCat: { fontSize: 15, fontWeight: '500', color: Palette.textPrimary },
-  txnDesc: { fontSize: 13, color: Palette.textMuted, marginTop: 2 },
+  txnCat: { fontSize: 15, fontWeight: '500', color: colors.textPrimary },
+  txnDesc: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   txnAmt: { fontSize: 15, fontWeight: '600' },
 });

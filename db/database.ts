@@ -129,7 +129,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       '0'
     );
 
-    currentVersion = 3;
+    currentVersion = 5;
   }
 
   // Migration: v1 → v2 (existing users)

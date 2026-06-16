@@ -9,7 +9,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -22,21 +22,22 @@ export const MaterialTopTabs = withLayoutContext<
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
 
   return (
     <MaterialTopTabs
       tabBarPosition="bottom"
       initialRouteName="index"
       screenOptions={{
-        tabBarActiveTintColor: Palette.accent,
-        tabBarInactiveTintColor: Palette.textMuted,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarShowIcon: true,
         tabBarIndicatorStyle: {
           height: 0,
         },
         tabBarStyle: {
-          backgroundColor: Palette.tabBar,
-          borderTopColor: Palette.tabBarBorder,
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
           borderTopWidth: 1,
           height: 60 + (Platform.OS === 'android' ? insets.bottom || 24 : insets.bottom),
           paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 16) : Math.max(insets.bottom, 8),

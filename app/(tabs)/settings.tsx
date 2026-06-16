@@ -3,13 +3,17 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Pressable } from 
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useColorScheme } from 'nativewind';
 
 import { Card } from '@/components/ui/card';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { getSetting, setSetting } from '@/db/queries';
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
+  const colors = useThemeColors();
+  const { colorScheme, toggleColorScheme } = useColorScheme();
   const [budget, setBudget] = useState('0');
 
   const loadData = useCallback(async () => {
@@ -46,6 +50,8 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const s = createStyles(colors);
+
   return (
     <View style={s.container}>
       <View style={s.header}>
@@ -61,6 +67,28 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
+        <Card style={s.card}>
+          <View style={s.row}>
+            <Text style={s.label}>Appearance</Text>
+            <View style={s.themeToggleRow}>
+              <Pressable 
+                style={[s.themeBtn, colorScheme === 'light' && s.themeBtnActive]} 
+                onPress={() => colorScheme !== 'light' && toggleColorScheme()}
+              >
+                <MaterialIcons name="light-mode" size={16} color={colorScheme === 'light' ? colors.white : colors.textMuted} />
+                <Text style={[s.themeBtnTxt, colorScheme === 'light' && s.themeBtnTxtActive]}>Light</Text>
+              </Pressable>
+              <Pressable 
+                style={[s.themeBtn, colorScheme === 'dark' && s.themeBtnActive]} 
+                onPress={() => colorScheme !== 'dark' && toggleColorScheme()}
+              >
+                <MaterialIcons name="dark-mode" size={16} color={colorScheme === 'dark' ? colors.white : colors.textMuted} />
+                <Text style={[s.themeBtnTxt, colorScheme === 'dark' && s.themeBtnTxtActive]}>Dark</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Card>
+
         <Text style={s.sectionTitle}>Monthly Salary</Text>
         <Card style={s.card}>
           <View style={s.inputRow}>
@@ -71,7 +99,7 @@ export default function SettingsScreen() {
                 value={budget}
                 onChangeText={setBudget}
                 keyboardType="numeric"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
             </View>
             <Pressable onPress={saveBudget} style={s.saveBtn}>
@@ -84,7 +112,7 @@ export default function SettingsScreen() {
         <Text style={s.sectionTitle}>Data Management</Text>
         <Card style={s.card} onPress={handleReset}>
           <View style={s.dangerRow}>
-            <MaterialIcons name="delete-forever" size={24} color={Palette.danger} />
+            <MaterialIcons name="delete-forever" size={24} color={colors.danger} />
             <Text style={s.dangerText}>Erase All Data</Text>
           </View>
         </Card>
@@ -95,25 +123,30 @@ export default function SettingsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  title: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: Palette.textMuted, marginTop: Spacing.lg, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 1 },
-  card: { padding: Spacing.base },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: colors.textMuted, marginTop: Spacing.lg, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 1 },
+  card: { padding: Spacing.base, marginBottom: Spacing.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  label: { fontSize: 16, color: Palette.textPrimary },
-  value: { fontSize: 16, color: Palette.textMuted, fontWeight: '500' },
+  label: { fontSize: 16, color: colors.textPrimary },
+  value: { fontSize: 16, color: colors.textMuted, fontWeight: '500' },
+  themeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgInput, borderRadius: Radius.full, padding: 4 },
+  themeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
+  themeBtnActive: { backgroundColor: colors.accent },
+  themeBtnTxt: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+  themeBtnTxtActive: { color: colors.white },
   inputRow: { flexDirection: 'row', gap: Spacing.sm },
-  inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, borderWidth: 1, borderColor: Palette.border },
-  inputPrefix: { color: Palette.textMuted, marginRight: 8, fontSize: 16 },
-  input: { flex: 1, height: 44, color: Palette.textPrimary, fontSize: 16 },
-  saveBtn: { backgroundColor: Palette.accent, justifyContent: 'center', paddingHorizontal: Spacing.lg, borderRadius: Radius.md },
-  saveBtnTxt: { color: Palette.white, fontWeight: '600', fontSize: 15 },
-  helpText: { fontSize: 13, color: Palette.textMuted, marginTop: Spacing.sm },
+  inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, borderWidth: 1, borderColor: colors.border },
+  inputPrefix: { color: colors.textMuted, marginRight: 8, fontSize: 16 },
+  input: { flex: 1, height: 44, color: colors.textPrimary, fontSize: 16 },
+  saveBtn: { backgroundColor: colors.accent, justifyContent: 'center', paddingHorizontal: Spacing.lg, borderRadius: Radius.md },
+  saveBtnTxt: { color: colors.white, fontWeight: '600', fontSize: 15 },
+  helpText: { fontSize: 13, color: colors.textMuted, marginTop: Spacing.sm },
   dangerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  dangerText: { fontSize: 16, color: Palette.danger, fontWeight: '600' },
-  version: { textAlign: 'center', color: Palette.textMuted, marginTop: Spacing.xl * 2, fontSize: 13 },
+  dangerText: { fontSize: 16, color: colors.danger, fontWeight: '600' },
+  version: { textAlign: 'center', color: colors.textMuted, marginTop: Spacing.xl * 2, fontSize: 13 },
 });

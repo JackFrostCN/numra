@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface EmptyStateProps {
   icon: string;
@@ -9,43 +10,41 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, title, message }: EmptyStateProps) {
+  const colors = useThemeColors();
+
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <MaterialIcons name={icon as any} size={48} color={Palette.textMuted} />
+      <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
+        <MaterialIcons name={icon as any} size={40} color={colors.textMuted} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
+      <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    padding: Spacing.xl * 2,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing['3xl'],
-    paddingHorizontal: Spacing.xl,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Palette.bgElevated,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.base,
+    marginBottom: Spacing.lg,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: Palette.textPrimary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   message: {
     fontSize: 14,
-    color: Palette.textMuted,
     textAlign: 'center',
     lineHeight: 20,
   },

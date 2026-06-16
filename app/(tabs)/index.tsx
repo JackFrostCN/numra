@@ -10,7 +10,8 @@ import { CategoryBadge } from '@/components/ui/category-badge';
 import { StatRing } from '@/components/ui/stat-ring';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { FAB } from '@/components/ui/fab';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import {
   getActiveLoans,
   getBillPaymentsForMonth,
@@ -40,6 +41,7 @@ function getGreeting(): string {
 export default function DashboardScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
 
   const [totals, setTotals] = useState<MonthlyTotals>({ income: 0, expenses: 0, balance: 0 });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
@@ -119,88 +121,90 @@ export default function DashboardScreen() {
   const budgetProgress = budget > 0 ? totals.expenses / budget : 0;
   const budgetPercentText = budget > 0 ? `${Math.round(budgetProgress * 100)}%` : '—';
   const budgetColor =
-    budgetProgress > 0.9 ? Palette.danger : budgetProgress > 0.7 ? Palette.warning : Palette.accent;
+    budgetProgress > 0.9 ? colors.danger : budgetProgress > 0.7 ? colors.warning : colors.accent;
+
+  const s = createStyles(colors);
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       {/* Header */}
       <LinearGradient
-        colors={[Palette.bgElevated, Palette.bg]}
-        style={styles.header}
+        colors={[colors.bgElevated, colors.bg]}
+        style={s.header}
       >
-        <View style={styles.headerContent}>
+        <View style={s.headerContent}>
           <View>
-            <Text style={styles.dateText}>{todayDate}</Text>
-            <Text style={styles.greeting}>{greeting}</Text>
+            <Text style={s.dateText}>{todayDate}</Text>
+            <Text style={s.greeting}>{greeting}</Text>
           </View>
         </View>
       </LinearGradient>
 
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        style={s.scrollView}
+        contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Palette.accent}
-            colors={[Palette.accent]}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
           />
         }
       >
         {/* Bank & Wallet Card */}
         {bankSummary && (
-          <Card style={styles.bankCard}>
-            <View style={styles.bankHeader}>
-              <Text style={styles.bankTitle}>My Accounts</Text>
-              <View style={styles.actionBtnsRow}>
+          <Card style={s.bankCard}>
+            <View style={s.bankHeader}>
+              <Text style={s.bankTitle}>My Accounts</Text>
+              <View style={s.actionBtnsRow}>
                 <Pressable 
-                  style={[styles.actionBtnSmall, { backgroundColor: Palette.bank }]}
+                  style={[s.actionBtnSmall, { backgroundColor: colors.bank }]}
                   onPress={() => router.push('/deposit')}
                 >
-                  <MaterialIcons name="arrow-upward" size={14} color={Palette.white} />
-                  <Text style={styles.actionBtnTxt}>Deposit</Text>
+                  <MaterialIcons name="arrow-upward" size={14} color={colors.white} />
+                  <Text style={s.actionBtnTxt}>Deposit</Text>
                 </Pressable>
                 <Pressable 
-                  style={[styles.actionBtnSmall, { backgroundColor: Palette.wallet }]}
+                  style={[s.actionBtnSmall, { backgroundColor: colors.wallet }]}
                   onPress={() => router.push('/withdraw')}
                 >
-                  <MaterialIcons name="arrow-downward" size={14} color={Palette.white} />
-                  <Text style={styles.actionBtnTxt}>Withdraw</Text>
+                  <MaterialIcons name="arrow-downward" size={14} color={colors.white} />
+                  <Text style={s.actionBtnTxt}>Withdraw</Text>
                 </Pressable>
               </View>
             </View>
 
-            <View style={styles.accountsRow}>
+            <View style={s.accountsRow}>
               {/* Bank Account */}
-              <View style={styles.accountCol}>
-                <View style={styles.accountLabelRow}>
-                  <View style={[styles.accountDot, { backgroundColor: Palette.bank }]} />
-                  <Text style={styles.accountLabel}>Bank</Text>
+              <View style={s.accountCol}>
+                <View style={s.accountLabelRow}>
+                  <View style={[s.accountDot, { backgroundColor: colors.bank }]} />
+                  <Text style={s.accountLabel}>Bank</Text>
                 </View>
-                <Text style={styles.accountAmount}>
+                <Text style={s.accountAmount}>
                   {hideBalances ? '••••' : formatCurrency(bankSummary.bankBalance)}
                 </Text>
               </View>
 
-              <View style={styles.accountDivider} />
+              <View style={s.accountDivider} />
 
               {/* Hand/Wallet */}
-              <View style={styles.accountCol}>
-                <View style={styles.accountLabelRow}>
-                  <View style={[styles.accountDot, { backgroundColor: Palette.wallet }]} />
-                  <Text style={styles.accountLabel}>Hand Cash</Text>
+              <View style={s.accountCol}>
+                <View style={s.accountLabelRow}>
+                  <View style={[s.accountDot, { backgroundColor: colors.wallet }]} />
+                  <Text style={s.accountLabel}>Hand Cash</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm, paddingRight: 4 }}>
-                  <Text style={[styles.accountAmount, { marginBottom: 0 }]}>
+                  <Text style={[s.accountAmount, { marginBottom: 0 }]}>
                     {hideBalances ? '••••' : formatCurrency(bankSummary.handBalance)}
                   </Text>
                   <Pressable onPress={() => setHideBalances(!hideBalances)} style={{ padding: 4, marginTop: -4 }}>
                     <MaterialIcons 
                       name={hideBalances ? 'visibility-off' : 'visibility'} 
                       size={20} 
-                      color={Palette.textSecondary} 
+                      color={colors.textSecondary} 
                     />
                   </Pressable>
                 </View>
@@ -210,14 +214,14 @@ export default function DashboardScreen() {
         )}
 
         {/* Balance Card */}
-        <Card style={styles.balanceCard}>
-          <View style={styles.balanceRow}>
-            <View style={styles.balanceInfo}>
-              <Text style={styles.balanceLabel}>Net Balance</Text>
+        <Card style={s.balanceCard}>
+          <View style={s.balanceRow}>
+            <View style={s.balanceInfo}>
+              <Text style={s.balanceLabel}>Net Balance</Text>
               <Text
                 style={[
-                  styles.balanceAmount,
-                  { color: totals.balance >= 0 ? Palette.income : Palette.expense },
+                  s.balanceAmount,
+                  { color: totals.balance >= 0 ? colors.income : colors.expense },
                 ]}
               >
                 {formatCurrency(totals.balance)}
@@ -237,8 +241,8 @@ export default function DashboardScreen() {
           </View>
 
           {budget > 0 && (
-            <View style={styles.budgetInfo}>
-              <Text style={styles.budgetText}>
+            <View style={s.budgetInfo}>
+              <Text style={s.budgetText}>
                 {formatCurrency(totals.expenses)} of {formatCurrency(budget)} budget used
               </Text>
             </View>
@@ -246,12 +250,12 @@ export default function DashboardScreen() {
         </Card>
 
         {/* Summary Cards */}
-        <View style={styles.summaryRow}>
+        <View style={s.summaryRow}>
           <SummaryCard
             title="Income"
             amount={totals.income}
             icon="trending-up"
-            gradient={Palette.gradientIncome}
+            gradient={colors.gradientIncome}
             small
           />
           <View style={{ width: Spacing.md }} />
@@ -259,45 +263,45 @@ export default function DashboardScreen() {
             title="Expenses"
             amount={totals.expenses}
             icon="trending-down"
-            gradient={Palette.gradientExpense}
+            gradient={colors.gradientExpense}
             small
           />
         </View>
 
         {/* Quick Stats */}
-        <View style={styles.quickStats}>
-          <Card style={styles.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
-            <View style={[styles.quickStatIcon, { backgroundColor: Palette.loanBg }]}>
-              <MaterialIcons name="account-balance" size={20} color={Palette.loan} />
+        <View style={s.quickStats}>
+          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
+            <View style={[s.quickStatIcon, { backgroundColor: colors.loanBg }]}>
+              <MaterialIcons name="account-balance" size={20} color={colors.loan} />
             </View>
-            <Text style={styles.quickStatValue}>{activeLoansCount}</Text>
-            <Text style={styles.quickStatLabel}>Active Loans</Text>
+            <Text style={s.quickStatValue}>{activeLoansCount}</Text>
+            <Text style={s.quickStatLabel}>Active Loans</Text>
           </Card>
 
-          <Card style={styles.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
-            <View style={[styles.quickStatIcon, { backgroundColor: Palette.expenseBg }]}>
-              <MaterialIcons name="money-off" size={20} color={Palette.expense} />
+          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
+            <View style={[s.quickStatIcon, { backgroundColor: colors.expenseBg }]}>
+              <MaterialIcons name="money-off" size={20} color={colors.expense} />
             </View>
-            <Text style={styles.quickStatValue}>{formatCurrency(totalDebt)}</Text>
-            <Text style={styles.quickStatLabel}>Total Debt</Text>
+            <Text style={s.quickStatValue}>{formatCurrency(totalDebt)}</Text>
+            <Text style={s.quickStatLabel}>Total Debt</Text>
           </Card>
 
-          <Card style={styles.quickStatCard} onPress={() => router.push('/(tabs)/bills')}>
-            <View style={[styles.quickStatIcon, { backgroundColor: Palette.billBg }]}>
-              <MaterialIcons name="receipt-long" size={20} color={Palette.bill} />
+          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/bills')}>
+            <View style={[s.quickStatIcon, { backgroundColor: colors.billBg }]}>
+              <MaterialIcons name="receipt-long" size={20} color={colors.bill} />
             </View>
-            <Text style={styles.quickStatValue}>{upcomingBills.length}</Text>
-            <Text style={styles.quickStatLabel}>Unpaid Bills</Text>
+            <Text style={s.quickStatValue}>{upcomingBills.length}</Text>
+            <Text style={s.quickStatLabel}>Unpaid Bills</Text>
           </Card>
         </View>
 
         {/* Upcoming Bills */}
         {upcomingBills.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Bills</Text>
+          <View style={s.section}>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>Upcoming Bills</Text>
               <Text
-                style={styles.seeAll}
+                style={s.seeAll}
                 onPress={() => router.push('/(tabs)/bills')}
               >
                 See all
@@ -307,21 +311,21 @@ export default function DashboardScreen() {
               const days = daysUntilDue(bill.due_day);
               const isOverdue = new Date().getDate() > bill.due_day;
               return (
-                <Card key={bill.id} style={styles.billItem}>
-                  <View style={styles.billRow}>
+                <Card key={bill.id} style={s.billItem}>
+                  <View style={s.billRow}>
                     <CategoryBadge category={bill.category} size="sm" />
-                    <View style={styles.billInfo}>
-                      <Text style={styles.billName}>{bill.name}</Text>
+                    <View style={s.billInfo}>
+                      <Text style={s.billName}>{bill.name}</Text>
                       <Text
                         style={[
-                          styles.billDue,
-                          isOverdue && { color: Palette.danger },
+                          s.billDue,
+                          isOverdue && { color: colors.danger },
                         ]}
                       >
                         {isOverdue ? 'Overdue' : `Due in ${days} day${days !== 1 ? 's' : ''}`}
                       </Text>
                     </View>
-                    <Text style={styles.billAmount}>{formatCurrency(bill.amount)}</Text>
+                    <Text style={s.billAmount}>{formatCurrency(bill.amount)}</Text>
                   </View>
                 </Card>
               );
@@ -330,11 +334,11 @@ export default function DashboardScreen() {
         )}
 
         {/* Recent Transactions */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Recent Transactions</Text>
             <Text
-              style={styles.seeAll}
+              style={s.seeAll}
               onPress={() => router.push('/(tabs)/transactions')}
             >
               See all
@@ -342,7 +346,7 @@ export default function DashboardScreen() {
           </View>
           {recentTransactions.length === 0 ? (
             <Card>
-              <Text style={styles.emptyText}>
+              <Text style={s.emptyText}>
                 No transactions yet. Tap + on the Transactions tab to add one.
               </Text>
             </Card>
@@ -350,21 +354,21 @@ export default function DashboardScreen() {
             recentTransactions.map((txn) => (
               <Card 
                 key={txn.id} 
-                style={styles.txnItem}
+                style={s.txnItem}
                 onPress={() => router.push({ pathname: '/add-transaction', params: { id: txn.id } })}
               >
-                <View style={styles.txnRow}>
+                <View style={s.txnRow}>
                   <CategoryBadge category={txn.category} size="sm" />
-                  <View style={styles.txnInfo}>
-                    <Text style={styles.txnCategory}>{txn.category}</Text>
-                    <Text style={styles.txnDate}>{formatDateShort(txn.date)}</Text>
+                  <View style={s.txnInfo}>
+                    <Text style={s.txnCategory}>{txn.category}</Text>
+                    <Text style={s.txnDate}>{formatDateShort(txn.date)}</Text>
                   </View>
                   <Text
                     style={[
-                      styles.txnAmount,
+                      s.txnAmount,
                       {
                         color:
-                          txn.type === 'income' ? Palette.income : Palette.expense,
+                          txn.type === 'income' ? colors.income : colors.expense,
                       },
                     ]}
                   >
@@ -384,10 +388,10 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bg,
+    backgroundColor: colors.bg,
   },
   header: {
     paddingTop: 56,
@@ -402,12 +406,12 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 18,
     fontWeight: '600',
-    color: Palette.textSecondary,
+    color: colors.textSecondary,
   },
   dateText: {
     fontSize: 22,
     fontWeight: '700',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   scrollView: {
@@ -434,7 +438,7 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 13,
-    color: Palette.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   balanceAmount: {
@@ -445,11 +449,11 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Palette.border,
+    borderTopColor: colors.border,
   },
   budgetText: {
     fontSize: 13,
-    color: Palette.textMuted,
+    color: colors.textMuted,
   },
   quickStats: {
     flexDirection: 'row',
@@ -473,13 +477,13 @@ const styles = StyleSheet.create({
   quickStatValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 2,
     textAlign: 'center',
   },
   quickStatLabel: {
     fontSize: 11,
-    color: Palette.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   section: {
@@ -494,11 +498,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
   },
   seeAll: {
     fontSize: 13,
-    color: Palette.accent,
+    color: colors.accent,
     fontWeight: '500',
   },
   billItem: {
@@ -515,17 +519,17 @@ const styles = StyleSheet.create({
   billName: {
     fontSize: 15,
     fontWeight: '500',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
   },
   billDue: {
     fontSize: 12,
-    color: Palette.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   billAmount: {
     fontSize: 15,
     fontWeight: '600',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
   },
   txnItem: {
     marginBottom: Spacing.sm,
@@ -541,11 +545,11 @@ const styles = StyleSheet.create({
   txnCategory: {
     fontSize: 15,
     fontWeight: '500',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
   },
   txnDate: {
     fontSize: 12,
-    color: Palette.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   txnAmount: {
@@ -554,7 +558,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: Palette.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
     paddingVertical: Spacing.lg,
   },
@@ -571,7 +575,7 @@ const styles = StyleSheet.create({
   bankTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
   },
   actionBtnsRow: {
     flexDirection: 'row',
@@ -586,7 +590,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionBtnTxt: {
-    color: Palette.white,
+    color: colors.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -600,7 +604,7 @@ const styles = StyleSheet.create({
   accountDivider: {
     width: 1,
     height: '80%',
-    backgroundColor: Palette.border,
+    backgroundColor: colors.border,
     marginHorizontal: Spacing.md,
   },
   accountLabelRow: {
@@ -616,18 +620,18 @@ const styles = StyleSheet.create({
   },
   accountLabel: {
     fontSize: 13,
-    color: Palette.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   accountAmount: {
     fontSize: 18,
     fontWeight: '700',
-    color: Palette.textPrimary,
+    color: colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   progressBarBg: {
     height: 4,
-    backgroundColor: Palette.bgInput,
+    backgroundColor: colors.bgInput,
     borderRadius: 2,
     marginBottom: 6,
     overflow: 'hidden',
@@ -638,6 +642,6 @@ const styles = StyleSheet.create({
   },
   accountSub: {
     fontSize: 11,
-    color: Palette.textMuted,
+    color: colors.textMuted,
   },
 });

@@ -9,7 +9,8 @@ import { FAB } from '@/components/ui/fab';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid, deleteBill } from '@/db/queries';
 import { formatCurrency, getCurrentYearMonth, getYearMonth, daysUntilDue, isBillOverdue } from '@/utils/helpers';
 import type { Bill } from '@/types';
@@ -17,6 +18,7 @@ import type { Bill } from '@/types';
 export default function BillsScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
   const [monthOffset, setMonthOffset] = useState(0);
   const [bills, setBills] = useState<(Bill & { is_paid: boolean })[]>([]);
   
@@ -59,6 +61,8 @@ export default function BillsScreen() {
   };
 
   const totalUnpaid = bills.filter(b => !b.is_paid).reduce((sum, b) => sum + b.amount, 0);
+
+  const s = createStyles(colors);
 
   return (
     <View style={s.container}>
@@ -111,7 +115,7 @@ export default function BillsScreen() {
                         onPress={() => togglePaid(bill.id, bill.is_paid)}
                         style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
                       >
-                        <MaterialIcons name="check" size={16} color={bill.is_paid ? Palette.white : Palette.textMuted} />
+                        <MaterialIcons name="check" size={16} color={bill.is_paid ? colors.white : colors.textMuted} />
                       </Pressable>
                     </View>
                   </View>
@@ -127,26 +131,26 @@ export default function BillsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm },
-  title: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
-  summaryCard: { marginHorizontal: Spacing.lg, backgroundColor: Palette.billBg, borderRadius: Radius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.md, borderWidth: 1, borderColor: `${Palette.bill}40` },
-  summaryLbl: { fontSize: 13, color: Palette.bill, marginBottom: 4 },
-  summaryAmt: { fontSize: 28, fontWeight: '700', color: Palette.textPrimary },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+  summaryCard: { marginHorizontal: Spacing.lg, backgroundColor: colors.billBg, borderRadius: Radius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.md, borderWidth: 1, borderColor: `${colors.bill}40` },
+  summaryLbl: { fontSize: 13, color: colors.bill, marginBottom: 4 },
+  summaryAmt: { fontSize: 28, fontWeight: '700', color: colors.textPrimary },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
   billCard: { marginBottom: Spacing.sm },
-  billCardPaid: { opacity: 0.7, backgroundColor: Palette.bgElevated },
+  billCardPaid: { opacity: 0.7, backgroundColor: colors.bgElevated },
   billRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   billInfo: { flex: 1 },
-  billName: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary },
-  billDue: { fontSize: 13, color: Palette.textMuted, marginTop: 2 },
+  billName: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  billDue: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   billRight: { alignItems: 'flex-end', gap: Spacing.sm },
-  billAmt: { fontSize: 15, fontWeight: '600', color: Palette.textPrimary },
+  billAmt: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  checkBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' },
-  checkBtnPaid: { backgroundColor: Palette.success, borderColor: Palette.success },
-  textPaid: { color: Palette.textMuted, textDecorationLine: 'line-through' },
-  textOverdue: { color: Palette.danger },
+  checkBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  checkBtnPaid: { backgroundColor: colors.success, borderColor: colors.success },
+  textPaid: { color: colors.textMuted, textDecorationLine: 'line-through' },
+  textOverdue: { color: colors.danger },
 });

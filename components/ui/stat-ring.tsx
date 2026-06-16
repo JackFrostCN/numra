@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { Palette } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -24,10 +24,12 @@ export function StatRing({
   progress,
   size = 120,
   strokeWidth = 10,
-  color = Palette.accent,
+  color,
   label,
   value,
 }: StatRingProps) {
+  const colors = useThemeColors();
+  const ringColor = color || colors.accent;
   const animatedProgress = useSharedValue(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -51,7 +53,7 @@ export function StatRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={Palette.bgElevated}
+          stroke={colors.bgElevated}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -60,7 +62,7 @@ export function StatRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={color}
+          stroke={ringColor}
           strokeWidth={strokeWidth}
           fill="none"
           strokeLinecap="round"
@@ -71,8 +73,8 @@ export function StatRing({
         />
       </Svg>
       <View style={[styles.labelContainer, { width: size, height: size }]}>
-        <Text style={styles.value}>{value}</Text>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
+        <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
       </View>
     </View>
   );
@@ -93,11 +95,9 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 20,
     fontWeight: '700',
-    color: Palette.textPrimary,
   },
   label: {
     fontSize: 11,
-    color: Palette.textMuted,
     marginTop: 2,
   },
 });

@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/card';
 import { FAB } from '@/components/ui/fab';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { getAllLoans } from '@/db/queries';
 import { formatCurrency, formatDateShort } from '@/utils/helpers';
 import type { Loan } from '@/types';
@@ -15,6 +16,7 @@ import type { Loan } from '@/types';
 export default function LoansScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [tab, setTab] = useState<'lent' | 'borrowed'>('borrowed');
 
@@ -29,6 +31,8 @@ export default function LoansScreen() {
   
   const activeCount = filtered.filter(l => l.is_completed === 0).length;
   const totalAmount = filtered.filter(l => l.is_completed === 0).reduce((sum, l) => sum + l.remaining_amount, 0);
+
+  const s = createStyles(colors);
 
   return (
     <View style={s.container}>
@@ -47,7 +51,7 @@ export default function LoansScreen() {
 
       <View style={s.summary}>
         <Text style={s.summaryLabel}>Active {tab === 'borrowed' ? 'Debt' : 'Lent'}</Text>
-        <Text style={[s.summaryAmt, { color: tab === 'borrowed' ? Palette.expense : Palette.income }]}>
+        <Text style={[s.summaryAmt, { color: tab === 'borrowed' ? colors.expense : colors.income }]}>
           {formatCurrency(totalAmount)}
         </Text>
         <Text style={s.summarySub}>{activeCount} active</Text>
@@ -88,7 +92,7 @@ export default function LoansScreen() {
                 </View>
                 <ProgressBar 
                   progress={progress} 
-                  color={isCompleted ? Palette.success : tab === 'borrowed' ? Palette.expense : Palette.income} 
+                  color={isCompleted ? colors.success : tab === 'borrowed' ? colors.expense : colors.income} 
                 />
                 
                 {loan.due_date && !isCompleted && (
@@ -105,31 +109,31 @@ export default function LoansScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  title: { fontSize: 24, fontWeight: '700', color: Palette.textPrimary },
-  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: Palette.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.lg },
+  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.lg },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.md },
-  tabActive: { backgroundColor: Palette.bgCard, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  tabTxt: { fontSize: 14, fontWeight: '600', color: Palette.textMuted },
-  tabTxtActive: { color: Palette.textPrimary },
+  tabActive: { backgroundColor: colors.bgCard, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  tabTxt: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
+  tabTxtActive: { color: colors.textPrimary },
   summary: { alignItems: 'center', marginBottom: Spacing.lg },
-  summaryLabel: { fontSize: 13, color: Palette.textMuted, marginBottom: 4 },
+  summaryLabel: { fontSize: 13, color: colors.textMuted, marginBottom: 4 },
   summaryAmt: { fontSize: 32, fontWeight: '700' },
-  summarySub: { fontSize: 12, color: Palette.textSecondary, marginTop: 4 },
+  summarySub: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
   card: { marginBottom: Spacing.md },
   cardCompleted: { opacity: 0.6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm },
-  personName: { fontSize: 16, fontWeight: '600', color: Palette.textPrimary },
-  statusBadge: { backgroundColor: Palette.loanBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radius.full },
-  statusBadgeCompleted: { backgroundColor: Palette.incomeBg },
-  statusTxt: { fontSize: 10, fontWeight: '600', color: Palette.loan },
-  statusTxtCompleted: { color: Palette.success },
-  totalAmt: { fontSize: 20, fontWeight: '700', color: Palette.textPrimary, marginBottom: Spacing.md },
+  personName: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+  statusBadge: { backgroundColor: colors.loanBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radius.full },
+  statusBadgeCompleted: { backgroundColor: colors.incomeBg },
+  statusTxt: { fontSize: 10, fontWeight: '600', color: colors.loan },
+  statusTxtCompleted: { color: colors.success },
+  totalAmt: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: Spacing.md },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
-  progressLbl: { fontSize: 12, color: Palette.textSecondary },
-  dueTxt: { fontSize: 12, color: Palette.warning, marginTop: Spacing.sm },
+  progressLbl: { fontSize: 12, color: colors.textSecondary },
+  dueTxt: { fontSize: 12, color: colors.warning, marginTop: Spacing.sm },
 });

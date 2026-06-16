@@ -1,4 +1,5 @@
-import { Palette, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { addWithdrawal } from '@/db/queries';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
@@ -10,6 +11,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 export default function WithdrawModal() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
 
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -39,6 +41,8 @@ export default function WithdrawModal() {
     router.back();
   };
 
+  const s = createStyles(colors);
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -49,15 +53,15 @@ export default function WithdrawModal() {
         {/* Visual flow indicator */}
         <View style={s.flowRow}>
           <View style={s.flowNode}>
-            <View style={[s.flowIcon, { backgroundColor: Palette.bankBg }]}>
-              <MaterialIcons name="account-balance" size={24} color={Palette.bank} />
+            <View style={[s.flowIcon, { backgroundColor: colors.bankBg }]}>
+              <MaterialIcons name="account-balance" size={24} color={colors.bank} />
             </View>
             <Text style={s.flowLabel}>Bank</Text>
           </View>
-          <MaterialIcons name="arrow-forward" size={24} color={Palette.textMuted} />
+          <MaterialIcons name="arrow-forward" size={24} color={colors.textMuted} />
           <View style={s.flowNode}>
-            <View style={[s.flowIcon, { backgroundColor: Palette.walletBg }]}>
-              <MaterialIcons name="account-balance-wallet" size={24} color={Palette.wallet} />
+            <View style={[s.flowIcon, { backgroundColor: colors.walletBg }]}>
+              <MaterialIcons name="account-balance-wallet" size={24} color={colors.wallet} />
             </View>
             <Text style={s.flowLabel}>Hand</Text>
           </View>
@@ -70,7 +74,7 @@ export default function WithdrawModal() {
           onChangeText={setAmount}
           keyboardType="numeric"
           placeholder="0.00"
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={colors.textMuted}
           autoFocus
         />
 
@@ -93,11 +97,11 @@ export default function WithdrawModal() {
           value={note}
           onChangeText={setNote}
           placeholder="e.g. ATM withdrawal, pocket money"
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={colors.textMuted}
         />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>
-          <MaterialIcons name="account-balance-wallet" size={20} color={Palette.white} />
+          <MaterialIcons name="account-balance-wallet" size={20} color={colors.white} />
           <Text style={s.saveTxt}>Withdraw to Hand</Text>
         </Pressable>
       </ScrollView>
@@ -105,8 +109,8 @@ export default function WithdrawModal() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
   flowRow: {
     flexDirection: 'row',
@@ -115,10 +119,10 @@ const s = StyleSheet.create({
     gap: Spacing.lg,
     paddingVertical: Spacing.xl,
     marginBottom: Spacing.md,
-    backgroundColor: Palette.bgCard,
+    backgroundColor: colors.bgCard,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Palette.border,
+    borderColor: colors.border,
   },
   flowNode: { alignItems: 'center', gap: Spacing.xs },
   flowIcon: {
@@ -128,14 +132,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flowLabel: { fontSize: 13, fontWeight: '600', color: Palette.textSecondary },
-  label: { fontSize: 13, color: Palette.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 36, fontWeight: '700', color: Palette.textPrimary, borderBottomWidth: 1, borderBottomColor: Palette.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
-  dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
-  dateText: { color: Palette.textPrimary, fontSize: 16 },
+  flowLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
+  inputBig: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
+  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
+  dateInput: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
+  dateText: { color: colors.textPrimary, fontSize: 16 },
   saveBtn: {
-    backgroundColor: Palette.wallet,
+    backgroundColor: colors.wallet,
     height: 52,
     borderRadius: Radius.md,
     alignItems: 'center',
@@ -144,5 +148,5 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  saveTxt: { color: Palette.white, fontSize: 16, fontWeight: '600' },
+  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
 });

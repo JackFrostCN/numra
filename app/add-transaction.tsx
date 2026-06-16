@@ -1,4 +1,5 @@
-import { Palette, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { addTransaction, getTransactionById, updateTransaction } from '@/db/queries';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
 import type { TransactionSource } from '@/types';
@@ -12,6 +13,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 export default function AddTransactionModal() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!id;
 
@@ -85,11 +87,13 @@ export default function AddTransactionModal() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: Palette.bg, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={Palette.accent} />
+      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
+
+  const s = createStyles(colors);
 
   return (
     <KeyboardAvoidingView 
@@ -122,7 +126,7 @@ export default function AddTransactionModal() {
         onChangeText={setAmount}
         keyboardType="numeric"
         placeholder="0.00"
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={colors.textMuted}
         autoFocus
       />
 
@@ -132,14 +136,14 @@ export default function AddTransactionModal() {
           style={[s.sourceBtn, source === 'bank' && s.sourceBankActive]}
           onPress={() => setSource('bank')}
         >
-          <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? Palette.white : Palette.textMuted} />
+          <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? colors.white : colors.textMuted} />
           <Text style={[s.sourceTxt, source === 'bank' && s.activeTxt]}>Bank (Card)</Text>
         </Pressable>
         <Pressable
           style={[s.sourceBtn, source === 'hand' && s.sourceHandActive]}
           onPress={() => setSource('hand')}
         >
-          <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? Palette.white : Palette.textMuted} />
+          <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? colors.white : colors.textMuted} />
           <Text style={[s.sourceTxt, source === 'hand' && s.activeTxt]}>Hand (Cash)</Text>
         </Pressable>
       </View>
@@ -175,7 +179,7 @@ export default function AddTransactionModal() {
         style={s.input}
         value={description}
         onChangeText={setDescription}
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={colors.textMuted}
       />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>
@@ -187,30 +191,30 @@ export default function AddTransactionModal() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  typeToggle: { flexDirection: 'row', backgroundColor: Palette.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.xl },
+  typeToggle: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.xl },
   toggleBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: Radius.md },
-  expenseActive: { backgroundColor: Palette.expense },
-  incomeActive: { backgroundColor: Palette.income },
-  toggleTxt: { fontSize: 15, fontWeight: '600', color: Palette.textMuted },
-  activeTxt: { color: Palette.white },
-  label: { fontSize: 13, color: Palette.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 36, fontWeight: '700', color: Palette.textPrimary, borderBottomWidth: 1, borderBottomColor: Palette.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
-  dateInput: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: Palette.border },
-  dateText: { color: Palette.textPrimary, fontSize: 16 },
-  sourceToggle: { flexDirection: 'row', backgroundColor: Palette.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.sm },
+  expenseActive: { backgroundColor: colors.expense },
+  incomeActive: { backgroundColor: colors.income },
+  toggleTxt: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
+  activeTxt: { color: colors.white },
+  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
+  inputBig: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
+  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
+  dateInput: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
+  dateText: { color: colors.textPrimary, fontSize: 16 },
+  sourceToggle: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.sm },
   sourceBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.md, flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  sourceBankActive: { backgroundColor: Palette.bank },
-  sourceHandActive: { backgroundColor: Palette.wallet },
-  sourceTxt: { fontSize: 14, fontWeight: '600', color: Palette.textMuted },
+  sourceBankActive: { backgroundColor: colors.bank },
+  sourceHandActive: { backgroundColor: colors.wallet },
+  sourceTxt: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: Palette.bgInput, borderWidth: 1, borderColor: Palette.border },
-  chipExpense: { backgroundColor: Palette.expense, borderColor: Palette.expense },
-  chipIncome: { backgroundColor: Palette.income, borderColor: Palette.income },
-  chipTxt: { fontSize: 13, color: Palette.textSecondary, fontWeight: '500' },
-  saveBtn: { backgroundColor: Palette.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
-  saveTxt: { color: Palette.white, fontSize: 16, fontWeight: '600' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: colors.bgInput, borderWidth: 1, borderColor: colors.border },
+  chipExpense: { backgroundColor: colors.expense, borderColor: colors.expense },
+  chipIncome: { backgroundColor: colors.income, borderColor: colors.income },
+  chipTxt: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+  saveBtn: { backgroundColor: colors.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
+  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
 });

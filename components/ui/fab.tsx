@@ -5,7 +5,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Palette, Radius } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -16,6 +17,7 @@ interface FABProps {
 
 export function FAB({ onPress, icon = 'add' }: FABProps) {
   const scale = useSharedValue(1);
+  const colors = useThemeColors();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -30,9 +32,16 @@ export function FAB({ onPress, icon = 'add' }: FABProps) {
       onPressOut={() => {
         scale.value = withSpring(1, { damping: 15, stiffness: 400 });
       }}
-      style={[styles.fab, animatedStyle]}
+      style={[
+        styles.fab, 
+        { 
+          backgroundColor: colors.accent,
+          shadowColor: colors.accent 
+        }, 
+        animatedStyle
+      ]}
     >
-      <MaterialIcons name={icon as any} size={28} color={Palette.white} />
+      <MaterialIcons name={icon as any} size={28} color={colors.white} />
     </AnimatedPressable>
   );
 }
@@ -45,11 +54,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: Radius.full,
-    backgroundColor: Palette.accent,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,
-    shadowColor: Palette.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,

@@ -5,11 +5,13 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { addBill, getBillById, updateBill } from '@/db/queries';
 import { BILL_CATEGORIES } from '@/types';
 import { useEffect } from 'react';
-import { Palette, Spacing, Radius } from '@/constants/theme';
+import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function AddBillModal() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!id;
 
@@ -52,6 +54,8 @@ export default function AddBillModal() {
     router.back();
   };
 
+  const s = createStyles(colors);
+
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
@@ -66,7 +70,7 @@ export default function AddBillModal() {
         value={name}
         onChangeText={setName}
         placeholder="E.g. Netflix"
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={colors.textMuted}
         autoFocus
       />
 
@@ -77,7 +81,7 @@ export default function AddBillModal() {
         onChangeText={setAmount}
         keyboardType="numeric"
         placeholder="0.00"
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={colors.textMuted}
       />
 
       <Text style={s.label}>Due Day (1-31)</Text>
@@ -88,7 +92,7 @@ export default function AddBillModal() {
         keyboardType="numeric"
         maxLength={2}
         placeholder="e.g. 15"
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={colors.textMuted}
       />
 
       <Text style={s.label}>Category</Text>
@@ -112,17 +116,17 @@ export default function AddBillModal() {
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.bg },
+const createStyles = (colors: PaletteType) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  label: { fontSize: 13, color: Palette.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 32, fontWeight: '700', color: Palette.textPrimary, borderBottomWidth: 1, borderBottomColor: Palette.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: Palette.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: Palette.textPrimary, fontSize: 16, borderWidth: 1, borderColor: Palette.border },
+  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
+  inputBig: { fontSize: 32, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
+  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: Palette.bgInput, borderWidth: 1, borderColor: Palette.border },
-  chipActive: { backgroundColor: Palette.bill, borderColor: Palette.bill },
-  chipTxt: { fontSize: 13, color: Palette.textSecondary, fontWeight: '500' },
-  activeTxt: { color: Palette.white },
-  saveBtn: { backgroundColor: Palette.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
-  saveTxt: { color: Palette.white, fontSize: 16, fontWeight: '600' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: colors.bgInput, borderWidth: 1, borderColor: colors.border },
+  chipActive: { backgroundColor: colors.bill, borderColor: colors.bill },
+  chipTxt: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+  activeTxt: { color: colors.white },
+  saveBtn: { backgroundColor: colors.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
+  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
 });
