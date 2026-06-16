@@ -9,11 +9,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useColorScheme } from 'nativewind';
 
 export default function AddLoanModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const [type, setType] = useState<'borrowed' | 'lent'>('borrowed');
   const [source, setSource] = useState<TransactionSource>('bank');
@@ -92,6 +95,7 @@ export default function AddLoanModal() {
           keyboardType="numeric"
           placeholder="0.00"
           placeholderTextColor={colors.textMuted}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           autoFocus
         />
 
@@ -102,6 +106,7 @@ export default function AddLoanModal() {
           onChangeText={setPerson}
           placeholder="Name"
           placeholderTextColor={colors.textMuted}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
         />
 
         <Text style={s.label}>Date</Text>
@@ -115,6 +120,7 @@ export default function AddLoanModal() {
           onConfirm={handleConfirmDate}
           onCancel={hideDatePicker}
           date={new Date(date)}
+          themeVariant={isDark ? "dark" : "light"}
         />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>

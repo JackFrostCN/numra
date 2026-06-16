@@ -7,11 +7,14 @@ import { BILL_CATEGORIES } from '@/types';
 import { useEffect } from 'react';
 import { Spacing, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useColorScheme } from 'nativewind';
 
 export default function AddBillModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!id;
 
@@ -71,6 +74,7 @@ export default function AddBillModal() {
         onChangeText={setName}
         placeholder="E.g. Netflix"
         placeholderTextColor={colors.textMuted}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
         autoFocus
       />
 
@@ -82,6 +86,7 @@ export default function AddBillModal() {
         keyboardType="numeric"
         placeholder="0.00"
         placeholderTextColor={colors.textMuted}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
       />
 
       <Text style={s.label}>Due Day (1-31)</Text>
@@ -93,6 +98,7 @@ export default function AddBillModal() {
         maxLength={2}
         placeholder="e.g. 15"
         placeholderTextColor={colors.textMuted}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
       />
 
       <Text style={s.label}>Category</Text>

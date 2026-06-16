@@ -9,11 +9,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useState, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useColorScheme } from 'nativewind';
 
 export default function AddTransactionModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!id;
 
@@ -127,6 +130,7 @@ export default function AddTransactionModal() {
         keyboardType="numeric"
         placeholder="0.00"
         placeholderTextColor={colors.textMuted}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
         autoFocus
       />
 
@@ -172,6 +176,7 @@ export default function AddTransactionModal() {
         onConfirm={handleConfirmDate}
         onCancel={hideDatePicker}
         date={new Date(date)}
+        themeVariant={isDark ? "dark" : "light"}
       />
 
       <Text style={s.label}>Description (Optional)</Text>
@@ -180,6 +185,7 @@ export default function AddTransactionModal() {
         value={description}
         onChangeText={setDescription}
         placeholderTextColor={colors.textMuted}
+        keyboardAppearance={isDark ? 'dark' : 'light'}
       />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>

@@ -7,11 +7,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useColorScheme } from 'nativewind';
 
 export default function DepositModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -75,6 +78,7 @@ export default function DepositModal() {
           keyboardType="numeric"
           placeholder="0.00"
           placeholderTextColor={colors.textMuted}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           autoFocus
         />
 
@@ -89,6 +93,7 @@ export default function DepositModal() {
           onConfirm={handleConfirmDate}
           onCancel={hideDatePicker}
           date={new Date(date)}
+          themeVariant={isDark ? "dark" : "light"}
         />
 
         <Text style={s.label}>Note (Optional)</Text>
@@ -98,6 +103,7 @@ export default function DepositModal() {
           onChangeText={setNote}
           placeholder="e.g. Bank deposit, savings"
           placeholderTextColor={colors.textMuted}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
         />
 
         <Pressable style={s.saveBtn} onPress={handleSave}>
