@@ -7,9 +7,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { addTransaction, updateTransaction, getTransactionById } from '@/db/queries';
+import { addTransaction, updateTransaction, getTransactionById, addDeposit, addWithdrawal } from '@/db/queries';
 import { CATEGORIES, getTodayISO, formatDateShort } from '@/utils/helpers';
 import type { TransactionType } from '@/types';
+
+type FormMode = 'expense' | 'income' | 'deposit' | 'withdraw';
 
 export default function AddTransactionModal() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -17,7 +19,7 @@ export default function AddTransactionModal() {
   const router = useRouter();
   const colors = useThemeColors();
 
-  const [type, setType] = useState<TransactionType>('expense');
+  const [type, setType] = useState<FormMode>('expense');
   const [source, setSource] = useState<'bank' | 'hand'>('bank');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(CATEGORIES.expense[0]);
@@ -46,7 +48,19 @@ export default function AddTransactionModal() {
       return;
     }
 
-    const payload = { type, source, amount: Number(amount), category, date, description };
+    if (type === 'deposit') {
+      await addDeposit(db, { amount: Number(amount), date, note: description });
+      router.back();
+      return;
+    }
+
+    if (type === 'withdraw') {
+      await addWithdrawal(db, { amount: Number(amount), date, note: description });
+      router.back();
+      return;
+    }
+
+    const payload = { type: type as TransactionType, source, amount: Number(amount), category, date, description };
 
     if (id) {
       await updateTransaction(db, parseInt(id, 10), payload);
@@ -56,9 +70,11 @@ export default function AddTransactionModal() {
     router.back();
   };
 
-  const handleTypeChange = (newType: TransactionType) => {
+  const handleTypeChange = (newType: FormMode) => {
     setType(newType);
-    setCategory(CATEGORIES[newType][0]);
+    if (newType === 'expense' || newType === 'income') {
+      setCategory(CATEGORIES[newType][0]);
+    }
   };
 
   const s = createStyles(colors);
@@ -67,22 +83,45 @@ export default function AddTransactionModal() {
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* Type Toggle */}
       <View style={s.typeToggleContainer}>
-        <View style={s.typeToggleRow}>
-          <Pressable style={[s.typeBtn, type === 'expense' && s.typeBtnExpenseActive]} onPress={() => handleTypeChange('expense')}>
-            <Text style={[s.typeBtnTxt, type === 'expense' && s.typeBtnTxtActive]}>EXPENSE</Text>
-          </Pressable>
-          <View style={s.typeDivider} />
-          <Pressable style={[s.typeBtn, type === 'income' && s.typeBtnIncomeActive]} onPress={() => handleTypeChange('income')}>
-            <Text style={[s.typeBtnTxt, type === 'income' && s.typeBtnTxtActive]}>INCOME</Text>
-          </Pressable>
+        <View style={{ gap: Spacing.sm }}>
+          <View style={s.typeToggleRow}>
+            <Pressable style={[s.typeBtn, type === 'expense' && s.typeBtnExpenseActive]} onPress={() => handleTypeChange('expense')}>
+              <Text style={[s.typeBtnTxt, type === 'expense' && s.typeBtnTxtActive]}>EXPENSE</Text>
+            </Pressable>
+            <View style={s.typeDivider} />
+            <Pressable style={[s.typeBtn, type === 'income' && s.typeBtnIncomeActive]} onPress={() => handleTypeChange('income')}>
+              <Text style={[s.typeBtnTxt, type === 'income' && s.typeBtnTxtActive]}>INCOME</Text>
+            </Pressable>
+          </View>
+          {!id && (
+            <View style={s.typeToggleRow}>
+              <Pressable style={[s.typeBtn, type === 'deposit' && s.typeBtnBankActive]} onPress={() => handleTypeChange('deposit')}>
+                <Text style={[s.typeBtnTxt, type === 'deposit' && s.typeBtnTxtActive]}>DEPOSIT</Text>
+              </Pressable>
+              <View style={s.typeDivider} />
+              <Pressable style={[s.typeBtn, type === 'withdraw' && s.typeBtnWalletActive]} onPress={() => handleTypeChange('withdraw')}>
+                <Text style={[s.typeBtnTxt, type === 'withdraw' && s.typeBtnTxtActive]}>WITHDRAW</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
 
       {/* Amount Input */}
       <View style={s.inputGroup}>
         <Text style={s.label}>AMOUNT</Text>
-        <View style={[s.amountInputRow, type === 'expense' ? s.amountInputRowExpense : s.amountInputRowIncome]}>
-          <Text style={[s.amountPrefix, type === 'expense' ? s.amountPrefixExpense : s.amountPrefixIncome]}>
+        <View style={[
+          s.amountInputRow, 
+          type === 'expense' ? s.amountInputRowExpense : 
+          type === 'income' ? s.amountInputRowIncome : 
+          s.amountInputRowTransfer
+        ]}>
+          <Text style={[
+            s.amountPrefix, 
+            type === 'expense' ? s.amountPrefixExpense : 
+            type === 'income' ? s.amountPrefixIncome : 
+            s.amountPrefixTransfer
+          ]}>
             LKR
           </Text>
           <TextInput
@@ -98,20 +137,22 @@ export default function AddTransactionModal() {
       </View>
 
       {/* Source Toggle */}
-      <View style={s.inputGroup}>
-        <Text style={s.label}>ACCOUNT</Text>
-        <View style={s.sourceToggleRow}>
-          <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => setSource('bank')}>
-            <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#000000' : colors.textMuted} />
-            <Text style={[s.sourceBtnTxt, source === 'bank' && s.sourceBtnTxtActive]}>BANK</Text>
-          </Pressable>
-          <View style={s.sourceDivider} />
-          <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => setSource('hand')}>
-            <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#000000' : colors.textMuted} />
-            <Text style={[s.sourceBtnTxt, source === 'hand' && s.sourceBtnTxtActive]}>HAND CASH</Text>
-          </Pressable>
+      {(type === 'expense' || type === 'income') && (
+        <View style={s.inputGroup}>
+          <Text style={s.label}>ACCOUNT</Text>
+          <View style={s.sourceToggleRow}>
+            <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => setSource('bank')}>
+              <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#000000' : colors.textMuted} />
+              <Text style={[s.sourceBtnTxt, source === 'bank' && s.sourceBtnTxtActive]}>BANK</Text>
+            </Pressable>
+            <View style={s.sourceDivider} />
+            <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => setSource('hand')}>
+              <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#000000' : colors.textMuted} />
+              <Text style={[s.sourceBtnTxt, source === 'hand' && s.sourceBtnTxtActive]}>HAND CASH</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Date */}
       <View style={s.inputGroup}>
@@ -123,23 +164,25 @@ export default function AddTransactionModal() {
       </View>
 
       {/* Category Chips */}
-      <View style={s.inputGroup}>
-        <Text style={s.label}>CATEGORY</Text>
-        <View style={s.chipContainer}>
-          {CATEGORIES[type].map((cat) => (
-            <Pressable
-              key={cat}
-              style={[
-                s.chip,
-                category === cat && (type === 'expense' ? s.chipExpenseActive : s.chipIncomeActive)
-              ]}
-              onPress={() => setCategory(cat)}
-            >
-              <Text style={[s.chipTxt, category === cat && s.chipTxtActive]}>{cat}</Text>
-            </Pressable>
-          ))}
+      {(type === 'expense' || type === 'income') && (
+        <View style={s.inputGroup}>
+          <Text style={s.label}>CATEGORY</Text>
+          <View style={s.chipContainer}>
+            {CATEGORIES[type as 'expense' | 'income'].map((cat) => (
+              <Pressable
+                key={cat}
+                style={[
+                  s.chip,
+                  category === cat && (type === 'expense' ? s.chipExpenseActive : s.chipIncomeActive)
+                ]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={[s.chipTxt, category === cat && s.chipTxtActive]}>{cat}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Description */}
       <View style={s.inputGroup}>
@@ -159,7 +202,7 @@ export default function AddTransactionModal() {
       <View style={s.saveBtnContainer}>
         <View style={s.saveBtnShadow} />
         <Pressable 
-          style={[s.saveBtn, { backgroundColor: type === 'income' ? colors.income : colors.expense }]} 
+          style={[s.saveBtn, { backgroundColor: type === 'expense' ? colors.expense : type === 'income' ? colors.income : type === 'deposit' ? colors.bank : colors.wallet }]} 
           onPress={handleSave}
         >
           <Text style={s.saveBtnTxt}>SAVE {type.toUpperCase()}</Text>
@@ -193,10 +236,14 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
   amountInputRowExpense: { backgroundColor: colors.expenseBg },
   amountInputRowIncome: { backgroundColor: colors.incomeBg },
+  amountInputRowTransfer: { backgroundColor: colors.bgCard },
   amountPrefix: { fontSize: 24, fontFamily: Fonts.body, marginRight: Spacing.md },
   amountPrefixExpense: { color: colors.expense },
   amountPrefixIncome: { color: colors.income },
+  amountPrefixTransfer: { color: colors.textPrimary },
   amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
+  typeBtnBankActive: { backgroundColor: colors.bank },
+  typeBtnWalletActive: { backgroundColor: colors.wallet },
   sourceToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
   sourceBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12, gap: 8 },
   sourceDivider: { width: 2, backgroundColor: colors.border },

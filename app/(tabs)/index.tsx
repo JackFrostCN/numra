@@ -154,22 +154,6 @@ export default function DashboardScreen() {
           <Card style={s.bankCard}>
             <View style={s.bankHeader}>
               <Text style={s.bankTitle}>MY ACCOUNTS</Text>
-              <View style={s.actionBtnsRow}>
-                <Pressable 
-                  style={[s.actionBtnSmall, { backgroundColor: colors.bank, borderColor: colors.border }]}
-                  onPress={() => router.push('/deposit')}
-                >
-                  <MaterialIcons name="arrow-upward" size={14} color="#000" />
-                  <Text style={s.actionBtnTxt}>Deposit</Text>
-                </Pressable>
-                <Pressable 
-                  style={[s.actionBtnSmall, { backgroundColor: colors.wallet, borderColor: colors.border }]}
-                  onPress={() => router.push('/withdraw')}
-                >
-                  <MaterialIcons name="arrow-downward" size={14} color="#000" />
-                  <Text style={s.actionBtnTxt}>Withdraw</Text>
-                </Pressable>
-              </View>
             </View>
 
             <View style={s.accountsRow}>
