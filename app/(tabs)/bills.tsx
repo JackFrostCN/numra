@@ -9,7 +9,7 @@ import { FAB } from '@/components/ui/fab';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid, deleteBill } from '@/db/queries';
 import { formatCurrency, getCurrentYearMonth, getYearMonth, daysUntilDue, isBillOverdue } from '@/utils/helpers';
@@ -67,19 +67,23 @@ export default function BillsScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.title}>Bills</Text>
+        <Text style={s.title}>BILLS</Text>
       </View>
 
       <MonthSelector yearMonth={yearMonth} onPrev={() => setMonthOffset(o => o - 1)} onNext={() => setMonthOffset(o => o + 1)} />
 
-      <View style={s.summaryCard}>
-        <Text style={s.summaryLbl}>Unpaid this month</Text>
-        <Text style={s.summaryAmt}>{formatCurrency(totalUnpaid)}</Text>
+      <View style={s.summaryWrapper}>
+        {/* Hard shadow */}
+        <View style={s.summaryShadow} />
+        <View style={s.summaryCard}>
+          <Text style={s.summaryLbl}>UNPAID THIS MONTH</Text>
+          <Text style={s.summaryAmt}>{formatCurrency(totalUnpaid)}</Text>
+        </View>
       </View>
 
       <ScrollView style={s.list} contentContainerStyle={s.listContent}>
         {bills.length === 0 ? (
-          <EmptyState icon="receipt-long" title="No bills" message="Add your recurring bills to track them" />
+          <EmptyState icon="receipt-long" title="NO BILLS" message="Add your recurring bills to track them" />
         ) : (
           bills.map(bill => {
             const overdue = isCurrentMonth && isBillOverdue(bill.due_day, bill.is_paid);
@@ -105,7 +109,7 @@ export default function BillsScreen() {
                   <View style={s.billInfo}>
                     <Text style={[s.billName, bill.is_paid && s.textPaid]}>{bill.name}</Text>
                     <Text style={[s.billDue, overdue && s.textOverdue]}>
-                      {bill.is_paid ? 'Paid' : overdue ? 'Overdue' : `Due in ${days} day${days !== 1 ? 's' : ''}`}
+                      {bill.is_paid ? 'PAID' : overdue ? 'OVERDUE' : `DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
                     </Text>
                   </View>
                   <View style={s.billRight}>
@@ -115,7 +119,7 @@ export default function BillsScreen() {
                         onPress={() => togglePaid(bill.id, bill.is_paid)}
                         style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
                       >
-                        <MaterialIcons name="check" size={16} color={bill.is_paid ? colors.white : colors.textMuted} />
+                        <MaterialIcons name="check" size={20} color={bill.is_paid ? '#000000' : colors.textMuted} />
                       </Pressable>
                     </View>
                   </View>
@@ -133,24 +137,26 @@ export default function BillsScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm },
-  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
-  summaryCard: { marginHorizontal: Spacing.lg, backgroundColor: colors.billBg, borderRadius: Radius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.md, borderWidth: 1, borderColor: `${colors.bill}40` },
-  summaryLbl: { fontSize: 13, color: colors.bill, marginBottom: 4 },
-  summaryAmt: { fontSize: 28, fontWeight: '700', color: colors.textPrimary },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  title: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 1 },
+  summaryWrapper: { position: 'relative', marginHorizontal: Spacing.lg, marginBottom: Spacing.md },
+  summaryShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border },
+  summaryCard: { backgroundColor: colors.bill, padding: Spacing.lg, alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border },
+  summaryLbl: { fontSize: 12, fontFamily: Fonts.heading, color: '#000000', marginBottom: 4, letterSpacing: 1 },
+  summaryAmt: { fontSize: 32, fontFamily: Fonts.heading, color: '#000000' },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
   billCard: { marginBottom: Spacing.sm },
-  billCardPaid: { opacity: 0.7, backgroundColor: colors.bgElevated },
+  billCardPaid: { opacity: 0.6 },
   billRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   billInfo: { flex: 1 },
-  billName: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  billDue: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  billName: { fontSize: 16, fontFamily: Fonts.heading, color: colors.textPrimary },
+  billDue: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
   billRight: { alignItems: 'flex-end', gap: Spacing.sm },
-  billAmt: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+  billAmt: { fontSize: 16, fontFamily: Fonts.mono, color: colors.textPrimary },
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  checkBtn: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  checkBtnPaid: { backgroundColor: colors.success, borderColor: colors.success },
+  checkBtn: { width: 32, height: 32, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  checkBtnPaid: { backgroundColor: colors.success },
   textPaid: { color: colors.textMuted, textDecorationLine: 'line-through' },
   textOverdue: { color: colors.danger },
 });

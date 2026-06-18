@@ -10,6 +10,7 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { Fonts } from '@/constants/theme';
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -38,16 +39,17 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.tabBarBorder,
-          borderTopWidth: 1,
+          borderTopWidth: colors.borderWidth,
           height: 60 + (Platform.OS === 'android' ? insets.bottom || 24 : insets.bottom),
           paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 16) : Math.max(insets.bottom, 8),
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          textTransform: 'none',
+          fontSize: 10,
+          fontFamily: Fonts.heading,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
           marginTop: 4,
         },
         tabBarItemStyle: {
@@ -61,7 +63,7 @@ export default function TabLayout() {
       <MaterialTopTabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="dashboard" size={24} color={color} />
           ),
@@ -70,7 +72,7 @@ export default function TabLayout() {
       <MaterialTopTabs.Screen
         name="transactions"
         options={{
-          title: 'Transactions',
+          title: 'Txns',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="swap-horiz" size={24} color={color} />
           ),
@@ -97,7 +99,7 @@ export default function TabLayout() {
       <MaterialTopTabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: 'Config',
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="settings" size={24} color={color} />
           ),

@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { Fonts } from '@/constants/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -23,7 +24,7 @@ interface StatRingProps {
 export function StatRing({
   progress,
   size = 120,
-  strokeWidth = 10,
+  strokeWidth = 12,
   color,
   label,
   value,
@@ -65,7 +66,7 @@ export function StatRing({
           stroke={ringColor}
           strokeWidth={strokeWidth}
           fill="none"
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={circumference}
           animatedProps={animatedProps}
           rotation="-90"
@@ -73,8 +74,8 @@ export function StatRing({
         />
       </Svg>
       <View style={[styles.labelContainer, { width: size, height: size }]}>
-        <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
-        <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+        <Text style={[styles.value, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{value}</Text>
+        <Text style={[styles.label, { color: colors.textMuted, fontFamily: Fonts.body }]}>{label}</Text>
       </View>
     </View>
   );
@@ -99,5 +100,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 11,
     marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

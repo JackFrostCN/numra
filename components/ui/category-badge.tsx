@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { getCategoryColor, getCategoryIcon } from '@/utils/helpers';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing, Fonts } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface CategoryBadgeProps {
   category: string;
@@ -9,6 +10,7 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, size = 'md' }: CategoryBadgeProps) {
+  const colors = useThemeColors();
   const color = getCategoryColor(category);
   const iconName = getCategoryIcon(category);
   const isSmall = size === 'sm';
@@ -18,10 +20,12 @@ export function CategoryBadge({ category, size = 'md' }: CategoryBadgeProps) {
       style={[
         styles.badge,
         {
-          backgroundColor: `${color}18`,
+          backgroundColor: `${color}30`,
+          borderColor: colors.border,
+          borderWidth: 2,
           width: isSmall ? 36 : 44,
           height: isSmall ? 36 : 44,
-          borderRadius: isSmall ? 10 : 12,
+          borderRadius: 4,
         },
       ]}
     >
@@ -39,11 +43,12 @@ interface CategoryPillProps {
 }
 
 export function CategoryPill({ category }: CategoryPillProps) {
+  const colors = useThemeColors();
   const color = getCategoryColor(category);
 
   return (
-    <View style={[styles.pill, { backgroundColor: `${color}18` }]}>
-      <Text style={[styles.pillText, { color }]}>{category}</Text>
+    <View style={[styles.pill, { backgroundColor: `${color}30`, borderColor: colors.border, borderWidth: 2 }]}>
+      <Text style={[styles.pillText, { color, fontFamily: Fonts.body }]}>{category}</Text>
     </View>
   );
 }
@@ -56,7 +61,7 @@ const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
-    borderRadius: Radius.full,
+    borderRadius: 0,
   },
   pillText: {
     fontSize: 11,

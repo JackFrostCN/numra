@@ -9,7 +9,7 @@ import { DaySelector } from '@/components/ui/day-selector';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction, getTransactionsByDay, getDailyTotals } from '@/db/queries';
 import { formatCurrency, formatDateShort, getYearMonth, getTodayISO } from '@/utils/helpers';
@@ -78,13 +78,14 @@ export default function TransactionsScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.title}>Transactions</Text>
+        <Text style={s.title}>TRANSACTIONS</Text>
         <View style={s.viewModeRow}>
           <Pressable onPress={() => setViewMode('monthly')} style={[s.viewModeBtn, viewMode === 'monthly' && s.viewModeBtnActive]}>
-            <Text style={[s.viewModeTxt, viewMode === 'monthly' && s.viewModeTxtActive]}>Monthly</Text>
+            <Text style={[s.viewModeTxt, viewMode === 'monthly' && s.viewModeTxtActive]}>MONTHLY</Text>
           </Pressable>
+          <View style={s.viewModeDivider} />
           <Pressable onPress={() => setViewMode('daily')} style={[s.viewModeBtn, viewMode === 'daily' && s.viewModeBtnActive]}>
-            <Text style={[s.viewModeTxt, viewMode === 'daily' && s.viewModeTxtActive]}>Daily</Text>
+            <Text style={[s.viewModeTxt, viewMode === 'daily' && s.viewModeTxtActive]}>DAILY</Text>
           </Pressable>
         </View>
       </View>
@@ -101,19 +102,19 @@ export default function TransactionsScreen() {
       <View style={s.miniSummary}>
         <View style={s.miniItem}>
           <Text style={[s.miniAmt, { color: colors.income }]} numberOfLines={1} adjustsFontSizeToFit>+{formatCurrency(totals.income)}</Text>
-          <Text style={s.miniLbl}>Income</Text>
+          <Text style={s.miniLbl}>INCOME</Text>
         </View>
         <View style={s.divider} />
         <View style={s.miniItem}>
           <Text style={[s.miniAmt, { color: colors.expense }]} numberOfLines={1} adjustsFontSizeToFit>-{formatCurrency(totals.expenses)}</Text>
-          <Text style={s.miniLbl}>Expenses</Text>
+          <Text style={s.miniLbl}>EXPENSES</Text>
         </View>
         <View style={s.divider} />
         <View style={s.miniItem}>
           <Text style={[s.miniAmt, { color: totals.balance >= 0 ? colors.income : colors.expense }]} numberOfLines={1} adjustsFontSizeToFit>
             {totals.balance > 0 ? '+' : ''}{formatCurrency(totals.balance)}
           </Text>
-          <Text style={s.miniLbl}>Balance</Text>
+          <Text style={s.miniLbl}>BALANCE</Text>
         </View>
       </View>
       <View style={s.filterRow}>
@@ -125,7 +126,7 @@ export default function TransactionsScreen() {
           return (
             <Pressable key={f} onPress={() => setFilter(f)} style={[s.filterTab, isActive && activeTabStyle]}>
               <Text style={[s.filterTxt, isActive && activeTxtStyle]}>
-                {f === 'all' ? 'All' : f === 'income' ? 'Income' : 'Expense'}
+                {f === 'all' ? 'ALL' : f === 'income' ? 'INCOME' : 'EXPENSE'}
               </Text>
             </Pressable>
           );
@@ -137,7 +138,7 @@ export default function TransactionsScreen() {
         ) : (
           Object.entries(grouped).map(([date, txns]) => (
             <View key={date} style={s.dateGroup}>
-              <Text style={s.dateLbl}>{formatDateShort(date)}</Text>
+              <Text style={s.dateLbl}>{formatDateShort(date).toUpperCase()}</Text>
               {txns.map((txn) => (
                 <Card key={txn.id} style={s.txnCard}>
                   <Pressable 
@@ -168,35 +169,36 @@ export default function TransactionsScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
-  viewModeRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderRadius: Radius.full, padding: 2, borderWidth: 1, borderColor: colors.border },
-  viewModeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
-  viewModeBtnActive: { backgroundColor: colors.bgElevated, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1 },
-  viewModeTxt: { fontSize: 12, fontWeight: '500', color: colors.textMuted },
-  viewModeTxtActive: { color: colors.textPrimary },
-  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, borderRadius: Radius.lg, padding: Spacing.base, borderWidth: 1, borderColor: colors.border },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  title: { fontSize: 22, fontFamily: Fonts.heading, color: colors.textPrimary },
+  viewModeRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  viewModeBtn: { paddingHorizontal: 12, paddingVertical: 6 },
+  viewModeDivider: { width: 2, backgroundColor: colors.border },
+  viewModeBtnActive: { backgroundColor: colors.accent },
+  viewModeTxt: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted },
+  viewModeTxtActive: { color: '#000000' },
+  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, padding: Spacing.base, borderWidth: colors.borderWidth, borderColor: colors.border },
   miniItem: { flex: 1, alignItems: 'center' },
-  divider: { width: 1, backgroundColor: colors.border },
-  miniAmt: { fontSize: 15, fontWeight: '700' },
-  miniLbl: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  divider: { width: 2, backgroundColor: colors.border },
+  miniAmt: { fontSize: 16, fontFamily: Fonts.mono },
+  miniLbl: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
   filterRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.sm, gap: Spacing.sm },
-  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
-  filterAllActive: { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: colors.info },
-  filterIncomeActive: { backgroundColor: colors.incomeBg, borderColor: colors.income },
-  filterExpenseActive: { backgroundColor: colors.expenseBg, borderColor: colors.expense },
-  filterTxt: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
-  filterAllTxtActive: { color: colors.info },
-  filterIncomeTxtActive: { color: colors.income },
-  filterExpenseTxtActive: { color: colors.expense },
+  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  filterAllActive: { backgroundColor: colors.info },
+  filterIncomeActive: { backgroundColor: colors.income },
+  filterExpenseActive: { backgroundColor: colors.expense },
+  filterTxt: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textMuted },
+  filterAllTxtActive: { color: '#000000' },
+  filterIncomeTxtActive: { color: '#000000' },
+  filterExpenseTxtActive: { color: '#000000' },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
   dateGroup: { marginBottom: Spacing.md },
-  dateLbl: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: Spacing.sm, marginLeft: Spacing.xs },
+  dateLbl: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, marginLeft: Spacing.xs, letterSpacing: 1 },
   txnCard: { marginBottom: Spacing.sm },
   txnRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   txnInfo: { flex: 1 },
-  txnCat: { fontSize: 15, fontWeight: '500', color: colors.textPrimary },
-  txnDesc: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  txnAmt: { fontSize: 15, fontWeight: '600' },
+  txnCat: { fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
+  txnDesc: { fontSize: 13, fontFamily: Fonts.bodyRegular, color: colors.textMuted, marginTop: 2 },
+  txnAmt: { fontSize: 15, fontFamily: Fonts.mono },
 });

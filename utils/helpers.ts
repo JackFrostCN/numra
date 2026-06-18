@@ -155,6 +155,35 @@ export function isBillOverdue(dueDay: number, isPaid: boolean): boolean {
 
 // ── Category Mappings ─────────────────────────
 
+export const CATEGORIES = {
+  expense: [
+    'Food',
+    'Transport',
+    'Rent',
+    'Utilities',
+    'Shopping',
+    'Health',
+    'Entertainment',
+    'Education',
+    'Groceries',
+    'Insurance',
+    'Subscriptions',
+    'Travel',
+    'Gifts',
+    'Other',
+  ],
+  income: [
+    'Salary',
+    'Freelance',
+    'Business',
+    'Investment',
+    'Rental',
+    'Gift',
+    'Refund',
+    'Other',
+  ],
+};
+
 const CATEGORY_ICONS: Record<string, string> = {
   // Expense
   Food: 'restaurant',

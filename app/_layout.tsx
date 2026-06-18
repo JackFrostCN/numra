@@ -6,12 +6,16 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { Suspense } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useColorScheme } from 'nativewind';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 
 import { migrateDbIfNeeded } from '@/db/database';
-import { DarkPalette, LightPalette } from '@/constants/theme';
+import { DarkPalette, LightPalette, NB } from '@/constants/theme';
 
-// Custom themes matching our palettes
+SplashScreen.preventAutoHideAsync();
+
+// Custom themes matching our neubrutalism palettes
 const NumraDarkTheme = {
   ...DarkTheme,
   colors: {
@@ -52,6 +56,30 @@ export default function RootLayout() {
   const colors = isDark ? DarkPalette : LightPalette;
   const theme = isDark ? NumraDarkTheme : NumraLightTheme;
 
+  const [fontsLoaded] = useFonts({
+    'SpaceGrotesk-Bold': require('../assets/fonts/SpaceGrotesk-Bold.ttf'),
+    'SpaceGrotesk-Medium': require('../assets/fonts/SpaceGrotesk-Medium.ttf'),
+    'SpaceGrotesk-Regular': require('../assets/fonts/SpaceGrotesk-Regular.ttf'),
+    'JetBrainsMono-Medium': require('../assets/fonts/JetBrainsMono-Medium.ttf'),
+    'JetBrainsMono-Bold': require('../assets/fonts/JetBrainsMono-Bold.ttf'),
+  });
+
+  if (fontsLoaded) {
+    SplashScreen.hideAsync();
+  }
+
+  if (!fontsLoaded) {
+    return <LoadingFallback />;
+  }
+
+  const headerStyle = {
+    backgroundColor: colors.bgCard,
+    borderBottomWidth: colors.borderWidth,
+    borderBottomColor: colors.border,
+    shadowOpacity: 0,
+    elevation: 0,
+  };
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <SQLiteProvider databaseName="numra.db" onInit={migrateDbIfNeeded} useSuspense>
@@ -68,9 +96,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
-                title: 'Add Transaction',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'ADD TRANSACTION',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -78,9 +107,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
-                title: 'Add Loan',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'ADD LOAN',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -88,9 +118,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
-                title: 'Add Bill',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'ADD BILL',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -98,9 +129,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
-                title: 'Withdraw Cash',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'WITHDRAW CASH',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -108,9 +140,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
-                title: 'Deposit Cash',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'DEPOSIT CASH',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -118,9 +151,10 @@ export default function RootLayout() {
               options={{
                 presentation: 'card',
                 headerShown: true,
-                title: 'Loan Details',
-                headerStyle: { backgroundColor: colors.bgCard },
+                title: 'LOAN DETAILS',
+                headerStyle,
                 headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
               }}
             />
           </Stack>

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Spacing } from '@/constants/theme';
+import { Spacing, Fonts } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface EmptyStateProps {
@@ -14,11 +14,15 @@ export function EmptyState({ icon, title, message }: EmptyStateProps) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconContainer, { backgroundColor: colors.bgElevated }]}>
+      <View style={[styles.iconContainer, {
+        backgroundColor: colors.bgElevated,
+        borderColor: colors.border,
+        borderWidth: colors.borderWidth,
+      }]}>
         <MaterialIcons name={icon as any} size={40} color={colors.textMuted} />
       </View>
-      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
-      <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{title}</Text>
+      <Text style={[styles.message, { color: colors.textMuted, fontFamily: Fonts.body }]}>{message}</Text>
     </View>
   );
 }
@@ -32,16 +36,18 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.lg,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: Spacing.xs,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   message: {
     fontSize: 14,

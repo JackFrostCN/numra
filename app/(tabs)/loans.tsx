@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { FAB } from '@/components/ui/fab';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getAllLoans } from '@/db/queries';
 import { formatCurrency, formatDateShort } from '@/utils/helpers';
@@ -37,31 +37,32 @@ export default function LoansScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.title}>Loans & Debts</Text>
+        <Text style={s.title}>LOANS & DEBTS</Text>
       </View>
 
       <View style={s.tabRow}>
         <Pressable onPress={() => setTab('borrowed')} style={[s.tab, tab === 'borrowed' && s.tabActive]}>
-          <Text style={[s.tabTxt, tab === 'borrowed' && s.tabTxtActive]}>I Owe</Text>
+          <Text style={[s.tabTxt, tab === 'borrowed' && s.tabTxtActive]}>I OWE</Text>
         </Pressable>
+        <View style={s.tabDivider} />
         <Pressable onPress={() => setTab('lent')} style={[s.tab, tab === 'lent' && s.tabActive]}>
-          <Text style={[s.tabTxt, tab === 'lent' && s.tabTxtActive]}>Owed to Me</Text>
+          <Text style={[s.tabTxt, tab === 'lent' && s.tabTxtActive]}>OWED TO ME</Text>
         </Pressable>
       </View>
 
       <View style={s.summary}>
-        <Text style={s.summaryLabel}>Active {tab === 'borrowed' ? 'Debt' : 'Lent'}</Text>
+        <Text style={s.summaryLabel}>ACTIVE {tab === 'borrowed' ? 'DEBT' : 'LENT'}</Text>
         <Text style={[s.summaryAmt, { color: tab === 'borrowed' ? colors.expense : colors.income }]}>
           {formatCurrency(totalAmount)}
         </Text>
-        <Text style={s.summarySub}>{activeCount} active</Text>
+        <Text style={s.summarySub}>{activeCount} ACTIVE</Text>
       </View>
 
       <ScrollView style={s.list} contentContainerStyle={s.listContent}>
         {filtered.length === 0 ? (
           <EmptyState 
             icon="account-balance" 
-            title={tab === 'borrowed' ? 'No Debts' : 'No Loans'} 
+            title={tab === 'borrowed' ? 'NO DEBTS' : 'NO LOANS'} 
             message={`Tap + to record money you ${tab === 'borrowed' ? 'owe' : 'lent'}`} 
           />
         ) : (
@@ -79,7 +80,7 @@ export default function LoansScreen() {
                   <Text style={s.personName}>{loan.person_name}</Text>
                   <View style={[s.statusBadge, isCompleted && s.statusBadgeCompleted]}>
                     <Text style={[s.statusTxt, isCompleted && s.statusTxtCompleted]}>
-                      {isCompleted ? 'Settled' : 'Active'}
+                      {isCompleted ? 'SETTLED' : 'ACTIVE'}
                     </Text>
                   </View>
                 </View>
@@ -87,7 +88,7 @@ export default function LoansScreen() {
                 <Text style={s.totalAmt}>{formatCurrency(loan.total_amount)}</Text>
                 
                 <View style={s.progressRow}>
-                  <Text style={s.progressLbl}>{formatCurrency(loan.total_amount - loan.remaining_amount)} paid</Text>
+                  <Text style={s.progressLbl}>{formatCurrency(loan.total_amount - loan.remaining_amount)} PAID</Text>
                   <Text style={s.progressLbl}>{Math.round(progress * 100)}%</Text>
                 </View>
                 <ProgressBar 
@@ -96,7 +97,7 @@ export default function LoansScreen() {
                 />
                 
                 {loan.due_date && !isCompleted && (
-                  <Text style={s.dueTxt}>Due by {formatDateShort(loan.due_date)}</Text>
+                  <Text style={s.dueTxt}>DUE BY {formatDateShort(loan.due_date).toUpperCase()}</Text>
                 )}
               </Card>
             );
@@ -111,29 +112,30 @@ export default function LoansScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
-  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.lg },
-  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.md },
-  tabActive: { backgroundColor: colors.bgCard, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  tabTxt: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
-  tabTxtActive: { color: colors.textPrimary },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  title: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 1 },
+  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, marginBottom: Spacing.lg },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  tabDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  tabActive: { backgroundColor: colors.accent },
+  tabTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted },
+  tabTxtActive: { color: '#000000' },
   summary: { alignItems: 'center', marginBottom: Spacing.lg },
-  summaryLabel: { fontSize: 13, color: colors.textMuted, marginBottom: 4 },
-  summaryAmt: { fontSize: 32, fontWeight: '700' },
-  summarySub: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+  summaryLabel: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: 4, letterSpacing: 1 },
+  summaryAmt: { fontSize: 36, fontFamily: Fonts.heading },
+  summarySub: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textSecondary, marginTop: 4, letterSpacing: 1 },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
   card: { marginBottom: Spacing.md },
   cardCompleted: { opacity: 0.6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm },
-  personName: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  statusBadge: { backgroundColor: colors.loanBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radius.full },
-  statusBadgeCompleted: { backgroundColor: colors.incomeBg },
-  statusTxt: { fontSize: 10, fontWeight: '600', color: colors.loan },
+  personName: { fontSize: 18, fontFamily: Fonts.heading, color: colors.textPrimary },
+  statusBadge: { backgroundColor: colors.loanBg, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 2, borderColor: colors.loan },
+  statusBadgeCompleted: { backgroundColor: colors.incomeBg, borderColor: colors.income },
+  statusTxt: { fontSize: 10, fontFamily: Fonts.heading, color: colors.loan },
   statusTxtCompleted: { color: colors.success },
-  totalAmt: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: Spacing.md },
+  totalAmt: { fontSize: 24, fontFamily: Fonts.mono, color: colors.textPrimary, marginBottom: Spacing.md },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
-  progressLbl: { fontSize: 12, color: colors.textSecondary },
-  dueTxt: { fontSize: 12, color: colors.warning, marginTop: Spacing.sm },
+  progressLbl: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textSecondary, letterSpacing: 0.5 },
+  dueTxt: { fontSize: 11, fontFamily: Fonts.heading, color: colors.warning, marginTop: Spacing.sm, letterSpacing: 0.5 },
 });

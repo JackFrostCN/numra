@@ -600,9 +600,7 @@ export async function getBankSummary(
 
   const totalWithdrawn = withdrawalsRaw?.total ?? 0;
   const totalDeposited = depositsRaw?.total ?? 0;
-  const salary = Number(salarySetting?.value) || 0;
-
-  const bankBalance = salary + bankIncome - bankExpense - totalWithdrawn + totalDeposited;
+  const bankBalance = bankIncome - bankExpense - totalWithdrawn + totalDeposited;
   const handBalance = handIncome + totalWithdrawn - handExpense - totalDeposited;
 
   return { bankBalance, handBalance };

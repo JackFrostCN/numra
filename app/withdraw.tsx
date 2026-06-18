@@ -1,158 +1,122 @@
-import { Radius, Spacing, type PaletteType } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/useThemeColors';
-import { addWithdrawal } from '@/db/queries';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useState } from 'react';
+import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useColorScheme } from 'nativewind';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { addTransaction } from '@/db/queries';
+import { getTodayISO } from '@/utils/helpers';
 
 export default function WithdrawModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
   const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
-  const [date, setDate] = useState(new Date().toISOString());
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-
-  const showDatePicker = () => setDatePickerVisibility(true);
-  const hideDatePicker = () => setDatePickerVisibility(false);
-
-  const handleConfirmDate = (selectedDate: Date) => {
-    setDate(selectedDate.toISOString());
-    hideDatePicker();
-  };
-
-  const formattedDisplayDate = new Date(date).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
-  });
 
   const handleSave = async () => {
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
+    if (!amount || isNaN(Number(amount))) {
+      alert('Please enter a valid amount');
+      return;
+    }
 
-    await addWithdrawal(db, {
+    // Withdraw from bank (Bank -> Hand)
+    await addTransaction(db, {
+      type: 'expense',
+      source: 'bank',
       amount: Number(amount),
-      date,
-      note: note.trim() || undefined,
+      category: 'Withdrawal',
+      date: getTodayISO(),
+      description: 'Withdrawal from Bank',
     });
+
+    await addTransaction(db, {
+      type: 'income',
+      source: 'hand',
+      amount: Number(amount),
+      category: 'Withdrawal',
+      date: getTodayISO(),
+      description: 'Withdrawal to Hand',
+    });
+
     router.back();
   };
 
   const s = createStyles(colors);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
-    >
-      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-        {/* Visual flow indicator */}
-        <View style={s.flowRow}>
-          <View style={s.flowNode}>
-            <View style={[s.flowIcon, { backgroundColor: colors.bankBg }]}>
-              <MaterialIcons name="account-balance" size={24} color={colors.bank} />
-            </View>
-            <Text style={s.flowLabel}>Bank</Text>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <View style={s.flowContainer}>
+        <View style={s.node}>
+          <View style={[s.iconBox, { backgroundColor: colors.bank }]}>
+            <MaterialIcons name="account-balance" size={24} color="#000" />
           </View>
-          <MaterialIcons name="arrow-forward" size={24} color={colors.textMuted} />
-          <View style={s.flowNode}>
-            <View style={[s.flowIcon, { backgroundColor: colors.walletBg }]}>
-              <MaterialIcons name="account-balance-wallet" size={24} color={colors.wallet} />
-            </View>
-            <Text style={s.flowLabel}>Hand</Text>
-          </View>
+          <Text style={s.nodeLabel}>BANK</Text>
         </View>
 
-        <Text style={s.label}>Amount (LKR)</Text>
-        <TextInput
-          style={s.inputBig}
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          placeholder="0.00"
-          placeholderTextColor={colors.textMuted}
-          keyboardAppearance={isDark ? 'dark' : 'light'}
-          autoFocus
-        />
+        <View style={s.arrowContainer}>
+          <View style={s.arrowLine} />
+          <MaterialIcons name="arrow-forward" size={24} color={colors.textPrimary} style={s.arrowIcon} />
+        </View>
 
-        <Text style={s.label}>Date & Time</Text>
-        <Pressable style={s.dateInput} onPress={showDatePicker}>
-          <Text style={s.dateText}>{formattedDisplayDate}</Text>
+        <View style={s.node}>
+          <View style={[s.iconBox, { backgroundColor: colors.wallet }]}>
+            <MaterialIcons name="account-balance-wallet" size={24} color="#000" />
+          </View>
+          <Text style={s.nodeLabel}>HAND CASH</Text>
+        </View>
+      </View>
+
+      <View style={s.inputGroup}>
+        <Text style={s.label}>AMOUNT</Text>
+        <View style={s.amountInputRow}>
+          <Text style={s.amountPrefix}>LKR</Text>
+          <TextInput
+            style={s.amountInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+            autoFocus
+          />
+        </View>
+      </View>
+
+      <View style={{ height: 120 }} />
+
+      <View style={s.saveBtnContainer}>
+        <View style={s.saveBtnShadow} />
+        <Pressable 
+          style={[s.saveBtn, { backgroundColor: colors.wallet }]} 
+          onPress={handleSave}
+        >
+          <Text style={s.saveBtnTxt}>CONFIRM WITHDRAWAL</Text>
         </Pressable>
-
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="datetime"
-          onConfirm={handleConfirmDate}
-          onCancel={hideDatePicker}
-          date={new Date(date)}
-          themeVariant={isDark ? "dark" : "light"}
-        />
-
-        <Text style={s.label}>Note (Optional)</Text>
-        <TextInput
-          style={s.input}
-          value={note}
-          onChangeText={setNote}
-          placeholder="e.g. ATM withdrawal, pocket money"
-          placeholderTextColor={colors.textMuted}
-          keyboardAppearance={isDark ? 'dark' : 'light'}
-        />
-
-        <Pressable style={s.saveBtn} onPress={handleSave}>
-          <MaterialIcons name="account-balance-wallet" size={20} color={colors.white} />
-          <Text style={s.saveTxt}>Withdraw to Hand</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
   );
 }
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  flowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.lg,
-    paddingVertical: Spacing.xl,
-    marginBottom: Spacing.md,
-    backgroundColor: colors.bgCard,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  flowNode: { alignItems: 'center', gap: Spacing.xs },
-  flowIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  flowLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  dateInput: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-  dateText: { color: colors.textPrimary, fontSize: 16 },
-  saveBtn: {
-    backgroundColor: colors.wallet,
-    height: 52,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Spacing.xl * 1.5,
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  flowContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl * 2, paddingVertical: Spacing.xl },
+  node: { alignItems: 'center' },
+  iconBox: { width: 56, height: 56, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  nodeLabel: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textPrimary, marginTop: 8, letterSpacing: 1 },
+  arrowContainer: { width: 60, height: 2, backgroundColor: colors.border, marginHorizontal: 10, position: 'relative' },
+  arrowLine: { height: 2, width: '100%', backgroundColor: colors.border },
+  arrowIcon: { position: 'absolute', right: -10, top: -11 },
+  inputGroup: { marginBottom: Spacing.lg },
+  label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.walletBg, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
+  amountPrefix: { fontSize: 24, fontFamily: Fonts.body, color: colors.wallet, marginRight: Spacing.md },
+  amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
+  saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
+  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
 });

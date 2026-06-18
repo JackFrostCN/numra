@@ -1,5 +1,4 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
@@ -10,7 +9,7 @@ import { CategoryBadge } from '@/components/ui/category-badge';
 import { StatRing } from '@/components/ui/stat-ring';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { FAB } from '@/components/ui/fab';
-import { Spacing, Radius, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import {
   getActiveLoans,
@@ -128,17 +127,14 @@ export default function DashboardScreen() {
   return (
     <View style={s.container}>
       {/* Header */}
-      <LinearGradient
-        colors={[colors.bgElevated, colors.bg]}
-        style={s.header}
-      >
+      <View style={s.header}>
         <View style={s.headerContent}>
           <View>
             <Text style={s.dateText}>{todayDate}</Text>
             <Text style={s.greeting}>{greeting}</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={s.scrollView}
@@ -157,20 +153,20 @@ export default function DashboardScreen() {
         {bankSummary && (
           <Card style={s.bankCard}>
             <View style={s.bankHeader}>
-              <Text style={s.bankTitle}>My Accounts</Text>
+              <Text style={s.bankTitle}>MY ACCOUNTS</Text>
               <View style={s.actionBtnsRow}>
                 <Pressable 
-                  style={[s.actionBtnSmall, { backgroundColor: colors.bank }]}
+                  style={[s.actionBtnSmall, { backgroundColor: colors.bank, borderColor: colors.border }]}
                   onPress={() => router.push('/deposit')}
                 >
-                  <MaterialIcons name="arrow-upward" size={14} color={colors.white} />
+                  <MaterialIcons name="arrow-upward" size={14} color="#000" />
                   <Text style={s.actionBtnTxt}>Deposit</Text>
                 </Pressable>
                 <Pressable 
-                  style={[s.actionBtnSmall, { backgroundColor: colors.wallet }]}
+                  style={[s.actionBtnSmall, { backgroundColor: colors.wallet, borderColor: colors.border }]}
                   onPress={() => router.push('/withdraw')}
                 >
-                  <MaterialIcons name="arrow-downward" size={14} color={colors.white} />
+                  <MaterialIcons name="arrow-downward" size={14} color="#000" />
                   <Text style={s.actionBtnTxt}>Withdraw</Text>
                 </Pressable>
               </View>
@@ -181,7 +177,7 @@ export default function DashboardScreen() {
               <View style={s.accountCol}>
                 <View style={s.accountLabelRow}>
                   <View style={[s.accountDot, { backgroundColor: colors.bank }]} />
-                  <Text style={s.accountLabel}>Bank</Text>
+                  <Text style={s.accountLabel}>BANK</Text>
                 </View>
                 <Text style={s.accountAmount}>
                   {hideBalances ? '••••' : formatCurrency(bankSummary.bankBalance)}
@@ -194,7 +190,7 @@ export default function DashboardScreen() {
               <View style={s.accountCol}>
                 <View style={s.accountLabelRow}>
                   <View style={[s.accountDot, { backgroundColor: colors.wallet }]} />
-                  <Text style={s.accountLabel}>Hand Cash</Text>
+                  <Text style={s.accountLabel}>HAND CASH</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm, paddingRight: 4 }}>
                   <Text style={[s.accountAmount, { marginBottom: 0 }]}>
@@ -217,7 +213,7 @@ export default function DashboardScreen() {
         <Card style={s.balanceCard}>
           <View style={s.balanceRow}>
             <View style={s.balanceInfo}>
-              <Text style={s.balanceLabel}>Net Balance</Text>
+              <Text style={s.balanceLabel}>NET BALANCE</Text>
               <Text
                 style={[
                   s.balanceAmount,
@@ -275,7 +271,7 @@ export default function DashboardScreen() {
               <MaterialIcons name="account-balance" size={20} color={colors.loan} />
             </View>
             <Text style={s.quickStatValue}>{activeLoansCount}</Text>
-            <Text style={s.quickStatLabel}>Active Loans</Text>
+            <Text style={s.quickStatLabel}>ACTIVE LOANS</Text>
           </Card>
 
           <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
@@ -283,7 +279,7 @@ export default function DashboardScreen() {
               <MaterialIcons name="money-off" size={20} color={colors.expense} />
             </View>
             <Text style={s.quickStatValue}>{formatCurrency(totalDebt)}</Text>
-            <Text style={s.quickStatLabel}>Total Debt</Text>
+            <Text style={s.quickStatLabel}>TOTAL DEBT</Text>
           </Card>
 
           <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/bills')}>
@@ -291,7 +287,7 @@ export default function DashboardScreen() {
               <MaterialIcons name="receipt-long" size={20} color={colors.bill} />
             </View>
             <Text style={s.quickStatValue}>{upcomingBills.length}</Text>
-            <Text style={s.quickStatLabel}>Unpaid Bills</Text>
+            <Text style={s.quickStatLabel}>UNPAID BILLS</Text>
           </Card>
         </View>
 
@@ -299,12 +295,12 @@ export default function DashboardScreen() {
         {upcomingBills.length > 0 && (
           <View style={s.section}>
             <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle}>Upcoming Bills</Text>
+              <Text style={s.sectionTitle}>UPCOMING BILLS</Text>
               <Text
                 style={s.seeAll}
                 onPress={() => router.push('/(tabs)/bills')}
               >
-                See all
+                See all →
               </Text>
             </View>
             {upcomingBills.map((bill) => {
@@ -322,7 +318,7 @@ export default function DashboardScreen() {
                           isOverdue && { color: colors.danger },
                         ]}
                       >
-                        {isOverdue ? 'Overdue' : `Due in ${days} day${days !== 1 ? 's' : ''}`}
+                        {isOverdue ? 'OVERDUE' : `Due in ${days} day${days !== 1 ? 's' : ''}`}
                       </Text>
                     </View>
                     <Text style={s.billAmount}>{formatCurrency(bill.amount)}</Text>
@@ -336,12 +332,12 @@ export default function DashboardScreen() {
         {/* Recent Transactions */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Recent Transactions</Text>
+            <Text style={s.sectionTitle}>RECENT TRANSACTIONS</Text>
             <Text
               style={s.seeAll}
               onPress={() => router.push('/(tabs)/transactions')}
             >
-              See all
+              See all →
             </Text>
           </View>
           {recentTransactions.length === 0 ? (
@@ -397,6 +393,9 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     paddingTop: 56,
     paddingBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
+    backgroundColor: colors.bg,
+    borderBottomWidth: colors.borderWidth,
+    borderBottomColor: colors.border,
   },
   headerContent: {
     flexDirection: 'row',
@@ -404,13 +403,13 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     alignItems: 'center',
   },
   greeting: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontFamily: Fonts.body,
     color: colors.textSecondary,
   },
   dateText: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontFamily: Fonts.heading,
     color: colors.textPrimary,
     marginBottom: 4,
   },
@@ -419,14 +418,14 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.base,
   },
   summaryRow: {
     flexDirection: 'row',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
   },
   balanceCard: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
   },
   balanceRow: {
     flexDirection: 'row',
@@ -437,28 +436,32 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     flex: 1,
   },
   balanceLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: Fonts.body,
     color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 4,
   },
   balanceAmount: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Fonts.heading,
   },
   budgetInfo: {
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     borderTopColor: colors.border,
   },
   budgetText: {
     fontSize: 13,
+    fontFamily: Fonts.body,
     color: colors.textMuted,
   },
   quickStats: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
   },
   quickStatCard: {
     flex: 1,
@@ -469,22 +472,26 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   quickStatIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   quickStatValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Fonts.heading,
     color: colors.textPrimary,
     marginBottom: 2,
     textAlign: 'center',
   },
   quickStatLabel: {
-    fontSize: 11,
+    fontSize: 9,
+    fontFamily: Fonts.heading,
     color: colors.textMuted,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   section: {
     marginBottom: Spacing.lg,
@@ -496,14 +503,15 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: Fonts.heading,
     color: colors.textPrimary,
+    letterSpacing: 1,
   },
   seeAll: {
     fontSize: 13,
+    fontFamily: Fonts.body,
     color: colors.accent,
-    fontWeight: '500',
   },
   billItem: {
     marginBottom: Spacing.sm,
@@ -518,17 +526,18 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   },
   billName: {
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: Fonts.body,
     color: colors.textPrimary,
   },
   billDue: {
     fontSize: 12,
+    fontFamily: Fonts.body,
     color: colors.textMuted,
     marginTop: 2,
   },
   billAmount: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.heading,
     color: colors.textPrimary,
   },
   txnItem: {
@@ -544,26 +553,28 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   },
   txnCategory: {
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: Fonts.body,
     color: colors.textPrimary,
   },
   txnDate: {
     fontSize: 12,
+    fontFamily: Fonts.body,
     color: colors.textMuted,
     marginTop: 2,
   },
   txnAmount: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.mono,
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: Fonts.body,
     color: colors.textMuted,
     textAlign: 'center',
     paddingVertical: Spacing.lg,
   },
   bankCard: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
     padding: Spacing.base,
   },
   bankHeader: {
@@ -573,9 +584,10 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     marginBottom: Spacing.md,
   },
   bankTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: Fonts.heading,
     color: colors.textPrimary,
+    letterSpacing: 1,
   },
   actionBtnsRow: {
     flexDirection: 'row',
@@ -586,13 +598,14 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: Radius.full,
+    borderRadius: 0,
+    borderWidth: 2,
     gap: 4,
   },
   actionBtnTxt: {
-    color: colors.white,
+    color: '#000000',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.heading,
   },
   accountsRow: {
     flexDirection: 'row',
@@ -602,7 +615,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     flex: 1,
   },
   accountDivider: {
-    width: 1,
+    width: 2,
     height: '80%',
     backgroundColor: colors.border,
     marginHorizontal: Spacing.md,
@@ -614,34 +627,22 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     marginBottom: 4,
   },
   accountDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   accountLabel: {
-    fontSize: 13,
+    fontSize: 11,
+    fontFamily: Fonts.heading,
     color: colors.textSecondary,
-    fontWeight: '500',
+    letterSpacing: 0.5,
   },
   accountAmount: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.mono,
     color: colors.textPrimary,
     marginBottom: Spacing.sm,
-  },
-  progressBarBg: {
-    height: 4,
-    backgroundColor: colors.bgInput,
-    borderRadius: 2,
-    marginBottom: 6,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  accountSub: {
-    fontSize: 11,
-    color: colors.textMuted,
   },
 });

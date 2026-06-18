@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Spacing, Radius } from '@/constants/theme';
+import { Spacing, Fonts } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getMonthDisplayName } from '@/utils/helpers';
 
@@ -18,7 +18,11 @@ export function MonthSelector({ yearMonth, onPrev, onNext }: MonthSelectorProps)
   return (
     <View style={styles.container}>
       <Pressable 
-        style={[styles.btn, { backgroundColor: colors.bgElevated }]} 
+        style={[styles.btn, {
+          backgroundColor: colors.bgCard,
+          borderColor: colors.border,
+          borderWidth: 2,
+        }]} 
         onPress={onPrev}
       >
         <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
@@ -26,11 +30,15 @@ export function MonthSelector({ yearMonth, onPrev, onNext }: MonthSelectorProps)
       
       <View style={styles.center}>
         <MaterialIcons name="calendar-today" size={16} color={colors.textMuted} style={styles.icon} />
-        <Text style={[styles.text, { color: colors.textPrimary }]}>{display}</Text>
+        <Text style={[styles.text, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{display}</Text>
       </View>
       
       <Pressable 
-        style={[styles.btn, { backgroundColor: colors.bgElevated }]} 
+        style={[styles.btn, {
+          backgroundColor: colors.bgCard,
+          borderColor: colors.border,
+          borderWidth: 2,
+        }]} 
         onPress={onNext}
       >
         <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
@@ -51,7 +59,7 @@ const styles = StyleSheet.create({
   btn: {
     width: 40,
     height: 40,
-    borderRadius: Radius.full,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -64,6 +72,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

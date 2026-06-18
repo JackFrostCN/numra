@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { formatCurrency } from '@/utils/helpers';
-import { Palette, Radius, Spacing } from '@/constants/theme';
+import { Spacing, Fonts, NB } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface SummaryCardProps {
   title: string;
@@ -21,28 +21,55 @@ export function SummaryCard({
   subtitle,
   small,
 }: SummaryCardProps) {
+  const colors = useThemeColors();
+  // Use solid color instead of gradient — first color of the gradient pair
+  const bgColor = gradient[0];
+
   return (
-    <LinearGradient
-      colors={gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.card, small && styles.cardSmall]}
-    >
-      <View style={[styles.header, small && styles.headerSmall]}>
-        <View style={[styles.iconContainer, small && styles.iconContainerSmall]}>
-          <MaterialIcons name={icon as any} size={small ? 14 : 20} color="rgba(255,255,255,0.9)" />
+    <View style={{ flex: 1, position: 'relative' }}>
+      {/* Hard shadow */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: colors.border,
+            borderRadius: 4,
+            top: NB.shadowOffset,
+            left: NB.shadowOffset,
+            right: -NB.shadowOffset,
+            bottom: -NB.shadowOffset,
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.card,
+          small && styles.cardSmall,
+          {
+            backgroundColor: bgColor,
+            borderColor: colors.border,
+            borderWidth: colors.borderWidth,
+          },
+        ]}
+      >
+        <View style={[styles.header, small && styles.headerSmall]}>
+          <View style={[styles.iconContainer, small && styles.iconContainerSmall]}>
+            <MaterialIcons name={icon as any} size={small ? 14 : 20} color="#000000" />
+          </View>
+          <Text style={[styles.title, small && styles.titleSmall]}>{title}</Text>
         </View>
-        <Text style={[styles.title, small && styles.titleSmall]}>{title}</Text>
+        <Text style={[styles.amount, small && styles.amountSmall]}>
+          {formatCurrency(amount)}
+        </Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-      <Text style={[styles.amount, small && styles.amountSmall]}>{formatCurrency(amount)}</Text>
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radius.lg,
+    borderRadius: 4,
     padding: Spacing.base,
     flex: 1,
     minHeight: 110,
@@ -65,28 +92,30 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 32,
     height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconContainerSmall: {
     width: 22,
     height: 22,
-    borderRadius: 6,
+    borderRadius: 4,
   },
   title: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.85)',
+    fontFamily: Fonts.body,
+    color: '#000000',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   titleSmall: {
     fontSize: 11,
   },
   amount: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: Fonts.heading,
+    color: '#000000',
     marginTop: Spacing.sm,
   },
   amountSmall: {
@@ -95,7 +124,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
+    fontFamily: Fonts.body,
+    color: 'rgba(0,0,0,0.6)',
     marginTop: 2,
   },
 });

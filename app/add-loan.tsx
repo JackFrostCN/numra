@@ -1,52 +1,41 @@
-import { Radius, Spacing, type PaletteType } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/useThemeColors';
-import { addLoan } from '@/db/queries';
-import type { TransactionSource } from '@/types';
-import { getTodayISO } from '@/utils/helpers';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useState } from 'react';
+import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useColorScheme } from 'nativewind';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { addLoan } from '@/db/queries';
+import { getTodayISO, formatDateShort } from '@/utils/helpers';
 
 export default function AddLoanModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
-  const [type, setType] = useState<'borrowed' | 'lent'>('borrowed');
-  const [source, setSource] = useState<TransactionSource>('bank');
+  const [type, setType] = useState<'lent' | 'borrowed'>('borrowed');
+  const [personName, setPersonName] = useState('');
   const [amount, setAmount] = useState('');
-  const [person, setPerson] = useState('');
   const [date, setDate] = useState(getTodayISO());
+  const [dueDate, setDueDate] = useState<string | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleConfirmDate = (selectedDate: Date) => {
-    setDate(selectedDate.toISOString().split('T')[0]);
-    hideDatePicker();
-  };
+  const [isDueDatePickerVisible, setDueDatePickerVisibility] = useState(false);
 
   const handleSave = async () => {
-    if (!amount || isNaN(Number(amount)) || !person.trim()) return;
+    if (!amount || isNaN(Number(amount)) || !personName) {
+      alert('Please enter valid details');
+      return;
+    }
 
     await addLoan(db, {
       type,
-      person_name: person.trim(),
-      date,
-      source,
+      person_name: personName,
       total_amount: Number(amount),
+      date,
+      due_date: dueDate || undefined,
+      source: 'bank',
     });
     router.back();
   };
@@ -54,102 +43,126 @@ export default function AddLoanModal() {
   const s = createStyles(colors);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
-    >
-      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-        <View style={s.typeToggle}>
-          <Pressable style={[s.toggleBtn, type === 'borrowed' && s.borrowedActive]} onPress={() => setType('borrowed')}>
-            <Text style={[s.toggleTxt, type === 'borrowed' && s.activeTxt]}>I Owe</Text>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      {/* Type Toggle */}
+      <View style={s.typeToggleContainer}>
+        <View style={s.typeToggleRow}>
+          <Pressable style={[s.typeBtn, type === 'borrowed' && s.typeBtnBorrowedActive]} onPress={() => setType('borrowed')}>
+            <Text style={[s.typeBtnTxt, type === 'borrowed' && s.typeBtnTxtActive]}>I OWE THEM</Text>
           </Pressable>
-          <Pressable style={[s.toggleBtn, type === 'lent' && s.lentActive]} onPress={() => setType('lent')}>
-            <Text style={[s.toggleTxt, type === 'lent' && s.activeTxt]}>Owed To Me</Text>
+          <View style={s.typeDivider} />
+          <Pressable style={[s.typeBtn, type === 'lent' && s.typeBtnLentActive]} onPress={() => setType('lent')}>
+            <Text style={[s.typeBtnTxt, type === 'lent' && s.typeBtnTxtActive]}>THEY OWE ME</Text>
           </Pressable>
         </View>
+      </View>
 
-        <Text style={s.label}>{type === 'borrowed' ? 'Received In' : 'Paid From'}</Text>
-        <View style={s.sourceToggle}>
-          <Pressable
-            style={[s.sourceBtn, source === 'bank' && s.sourceBankActive]}
-            onPress={() => setSource('bank')}
-          >
-            <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? colors.white : colors.textMuted} />
-            <Text style={[s.sourceTxt, source === 'bank' && s.activeTxt]}>Bank (Card)</Text>
-          </Pressable>
-          <Pressable
-            style={[s.sourceBtn, source === 'hand' && s.sourceHandActive]}
-            onPress={() => setSource('hand')}
-          >
-            <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? colors.white : colors.textMuted} />
-            <Text style={[s.sourceTxt, source === 'hand' && s.activeTxt]}>Hand (Cash)</Text>
-          </Pressable>
-        </View>
-
-        <Text style={s.label}>Amount (LKR)</Text>
-        <TextInput
-          style={s.inputBig}
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          placeholder="0.00"
-          placeholderTextColor={colors.textMuted}
-          keyboardAppearance={isDark ? 'dark' : 'light'}
-          autoFocus
-        />
-
-        <Text style={s.label}>Person Name</Text>
+      <View style={s.inputGroup}>
+        <Text style={s.label}>PERSON's NAME</Text>
         <TextInput
           style={s.input}
-          value={person}
-          onChangeText={setPerson}
-          placeholder="Name"
+          value={personName}
+          onChangeText={setPersonName}
+          placeholder="Who?"
           placeholderTextColor={colors.textMuted}
-          keyboardAppearance={isDark ? 'dark' : 'light'}
+          autoFocus
         />
+      </View>
 
-        <Text style={s.label}>Date</Text>
-        <Pressable style={s.dateInput} onPress={showDatePicker}>
-          <Text style={s.dateText}>{date}</Text>
+      <View style={s.inputGroup}>
+        <Text style={s.label}>AMOUNT</Text>
+        <View style={[s.amountInputRow, type === 'borrowed' ? s.amountInputRowBorrowed : s.amountInputRowLent]}>
+          <Text style={[s.amountPrefix, type === 'borrowed' ? s.amountPrefixBorrowed : s.amountPrefixLent]}>LKR</Text>
+          <TextInput
+            style={s.amountInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+          />
+        </View>
+      </View>
+
+      <View style={s.inputGroup}>
+        <Text style={s.label}>DATE ISSUED</Text>
+        <Pressable style={s.dateBtn} onPress={() => setDatePickerVisibility(true)}>
+          <Text style={s.dateTxt}>{formatDateShort(date).toUpperCase()}</Text>
+          <MaterialIcons name="calendar-today" size={20} color={colors.textPrimary} />
         </Pressable>
+      </View>
 
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirmDate}
-          onCancel={hideDatePicker}
-          date={new Date(date)}
-          themeVariant={isDark ? "dark" : "light"}
-        />
-
-        <Pressable style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveTxt}>Save Loan</Text>
+      <View style={s.inputGroup}>
+        <Text style={s.label}>DUE DATE (OPTIONAL)</Text>
+        <Pressable style={s.dateBtn} onPress={() => setDueDatePickerVisibility(true)}>
+          <Text style={[s.dateTxt, !dueDate && { color: colors.textMuted }]}>
+            {dueDate ? formatDateShort(dueDate).toUpperCase() : 'NO DUE DATE SET'}
+          </Text>
+          <MaterialIcons name="event" size={20} color={dueDate ? colors.textPrimary : colors.textMuted} />
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        {dueDate && (
+          <Pressable style={{ marginTop: 8 }} onPress={() => setDueDate(null)}>
+            <Text style={{ color: colors.danger, fontFamily: Fonts.body, fontSize: 13 }}>Remove due date</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <View style={{ height: 120 }} />
+
+      <View style={s.saveBtnContainer}>
+        <View style={s.saveBtnShadow} />
+        <Pressable 
+          style={[s.saveBtn, { backgroundColor: colors.loan }]} 
+          onPress={handleSave}
+        >
+          <Text style={s.saveBtnTxt}>SAVE LOAN</Text>
+        </Pressable>
+      </View>
+
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        date={new Date(date)}
+        onConfirm={(d) => { setDatePickerVisibility(false); setDate(d.toISOString().split('T')[0]); }}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
+
+      <DateTimePickerModal
+        isVisible={isDueDatePickerVisible}
+        mode="date"
+        date={dueDate ? new Date(dueDate) : new Date()}
+        onConfirm={(d) => { setDueDatePickerVisibility(false); setDueDate(d.toISOString().split('T')[0]); }}
+        onCancel={() => setDueDatePickerVisibility(false)}
+      />
+    </ScrollView>
   );
 }
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  typeToggle: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.xl },
-  toggleBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: Radius.md },
-  borrowedActive: { backgroundColor: colors.expense },
-  lentActive: { backgroundColor: colors.income },
-  toggleTxt: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
-  activeTxt: { color: colors.white },
-  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  dateInput: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-  dateText: { color: colors.textPrimary, fontSize: 16 },
-  sourceToggle: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
-  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.full, backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border },
-  sourceBankActive: { backgroundColor: colors.bank, borderColor: colors.bank },
-  sourceHandActive: { backgroundColor: colors.wallet, borderColor: colors.wallet },
-  sourceTxt: { fontSize: 14, fontWeight: '500', color: colors.textMuted },
-  saveBtn: { backgroundColor: colors.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
-  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  typeToggleContainer: { marginBottom: Spacing.xl },
+  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border },
+  typeBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  typeDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  typeBtnBorrowedActive: { backgroundColor: colors.expense },
+  typeBtnLentActive: { backgroundColor: colors.income },
+  typeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
+  typeBtnTxtActive: { color: '#000000' },
+  inputGroup: { marginBottom: Spacing.lg },
+  label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
+  input: { backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
+  amountInputRowBorrowed: { backgroundColor: colors.expenseBg },
+  amountInputRowLent: { backgroundColor: colors.incomeBg },
+  amountPrefix: { fontSize: 24, fontFamily: Fonts.body, marginRight: Spacing.md },
+  amountPrefixBorrowed: { color: colors.expense },
+  amountPrefixLent: { color: colors.income },
+  amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
+  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48 },
+  dateTxt: { fontSize: 15, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 0.5 },
+  saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
+  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
 });

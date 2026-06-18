@@ -1,226 +1,220 @@
-import { Radius, Spacing, type PaletteType } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/useThemeColors';
-import { addTransaction, getTransactionById, updateTransaction } from '@/db/queries';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/types';
-import type { TransactionSource } from '@/types';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useState, useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useColorScheme } from 'nativewind';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { addTransaction, updateTransaction, getTransactionById } from '@/db/queries';
+import { CATEGORIES, getTodayISO, formatDateShort } from '@/utils/helpers';
+import type { TransactionType } from '@/types';
 
 export default function AddTransactionModal() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const isEditing = !!id;
 
-  const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [type, setType] = useState<TransactionType>('expense');
+  const [source, setSource] = useState<'bank' | 'hand'>('bank');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
+  const [category, setCategory] = useState(CATEGORIES.expense[0]);
+  const [date, setDate] = useState(getTodayISO());
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [source, setSource] = useState<TransactionSource>('hand'); // Default to "hand" (Hand Cash)
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
-      setLoading(true);
-      getTransactionById(db, Number(id))
-        .then((txn) => {
-          if (txn) {
-            setType(txn.type);
-            setAmount(txn.amount.toString());
-            setCategory(txn.category);
-            setDescription(txn.description || '');
-            setDate(txn.date);
-            setSource(txn.source);
-          }
-        })
-        .catch((err) => console.error('Error loading transaction details:', err))
-        .finally(() => setLoading(false));
+      getTransactionById(db, parseInt(id, 10)).then((txn) => {
+        if (txn) {
+          setType(txn.type);
+          setSource(txn.source);
+          setAmount(txn.amount.toString());
+          setCategory(txn.category);
+          setDate(txn.date);
+          setDescription(txn.description || '');
+        }
+      });
     }
   }, [id, db]);
 
-  const isExpense = type === 'expense';
-  const categories = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
-
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleConfirmDate = (selectedDate: Date) => {
-    setDate(selectedDate.toISOString());
-    hideDatePicker();
-  };
-
-  const formattedDisplayDate = new Date(date).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
-  });
-
   const handleSave = async () => {
-    if (!amount || isNaN(Number(amount))) return;
+    if (!amount || isNaN(Number(amount))) {
+      alert('Please enter a valid amount');
+      return;
+    }
 
-    const data = {
-      type,
-      amount: Number(amount),
-      category,
-      description: description.trim() || undefined,
-      date,
-      source,
-    };
+    const payload = { type, source, amount: Number(amount), category, date, description };
 
-    if (isEditing && id) {
-      await updateTransaction(db, Number(id), data);
+    if (id) {
+      await updateTransaction(db, parseInt(id, 10), payload);
     } else {
-      await addTransaction(db, data);
+      await addTransaction(db, payload);
     }
     router.back();
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
+  const handleTypeChange = (newType: TransactionType) => {
+    setType(newType);
+    setCategory(CATEGORIES[newType][0]);
+  };
 
   const s = createStyles(colors);
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
-    >
-      <Stack.Screen options={{ title: isEditing ? 'Edit Transaction' : 'Add Transaction' }} />
-      <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-        <View style={s.typeToggle}>
-        <Pressable
-          style={[s.toggleBtn, !isExpense && s.incomeActive]}
-          onPress={() => { setType('income'); setCategory(INCOME_CATEGORIES[0]); }}
-        >
-          <Text style={[s.toggleTxt, !isExpense && s.activeTxt]}>Income</Text>
-        </Pressable>
-        <Pressable
-          style={[s.toggleBtn, isExpense && s.expenseActive]}
-          onPress={() => { setType('expense'); setCategory(EXPENSE_CATEGORIES[0]); }}
-        >
-          <Text style={[s.toggleTxt, isExpense && s.activeTxt]}>Expense</Text>
-        </Pressable>
-
-      </View>
-
-      <Text style={s.label}>Amount (LKR)</Text>
-      <TextInput
-        style={s.inputBig}
-        value={amount}
-        onChangeText={setAmount}
-        keyboardType="numeric"
-        placeholder="0.00"
-        placeholderTextColor={colors.textMuted}
-        keyboardAppearance={isDark ? 'dark' : 'light'}
-        autoFocus
-      />
-
-      <Text style={s.label}>{isExpense ? 'Paid From' : 'Received In'}</Text>
-      <View style={s.sourceToggle}>
-        <Pressable
-          style={[s.sourceBtn, source === 'bank' && s.sourceBankActive]}
-          onPress={() => setSource('bank')}
-        >
-          <MaterialIcons name="account-balance" size={16} color={source === 'bank' ? colors.white : colors.textMuted} />
-          <Text style={[s.sourceTxt, source === 'bank' && s.activeTxt]}>Bank (Card)</Text>
-        </Pressable>
-        <Pressable
-          style={[s.sourceBtn, source === 'hand' && s.sourceHandActive]}
-          onPress={() => setSource('hand')}
-        >
-          <MaterialIcons name="account-balance-wallet" size={16} color={source === 'hand' ? colors.white : colors.textMuted} />
-          <Text style={[s.sourceTxt, source === 'hand' && s.activeTxt]}>Hand (Cash)</Text>
-        </Pressable>
-      </View>
-
-      <Text style={s.label}>Category</Text>
-      <View style={s.chipContainer}>
-        {categories.map(cat => (
-          <Pressable
-            key={cat}
-            style={[s.chip, category === cat && (isExpense ? s.chipExpense : s.chipIncome)]}
-            onPress={() => setCategory(cat)}
-          >
-            <Text style={[s.chipTxt, category === cat && s.activeTxt]}>{cat}</Text>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      {/* Type Toggle */}
+      <View style={s.typeToggleContainer}>
+        <View style={s.typeToggleRow}>
+          <Pressable style={[s.typeBtn, type === 'expense' && s.typeBtnExpenseActive]} onPress={() => handleTypeChange('expense')}>
+            <Text style={[s.typeBtnTxt, type === 'expense' && s.typeBtnTxtActive]}>EXPENSE</Text>
           </Pressable>
-        ))}
+          <View style={s.typeDivider} />
+          <Pressable style={[s.typeBtn, type === 'income' && s.typeBtnIncomeActive]} onPress={() => handleTypeChange('income')}>
+            <Text style={[s.typeBtnTxt, type === 'income' && s.typeBtnTxtActive]}>INCOME</Text>
+          </Pressable>
+        </View>
       </View>
 
-      <Text style={s.label}>Date & Time</Text>
-      <Pressable style={s.dateInput} onPress={showDatePicker}>
-        <Text style={s.dateText}>{formattedDisplayDate}</Text>
-      </Pressable>
+      {/* Amount Input */}
+      <View style={s.inputGroup}>
+        <Text style={s.label}>AMOUNT</Text>
+        <View style={[s.amountInputRow, type === 'expense' ? s.amountInputRowExpense : s.amountInputRowIncome]}>
+          <Text style={[s.amountPrefix, type === 'expense' ? s.amountPrefixExpense : s.amountPrefixIncome]}>
+            LKR
+          </Text>
+          <TextInput
+            style={s.amountInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+            autoFocus={!id}
+          />
+        </View>
+      </View>
+
+      {/* Source Toggle */}
+      <View style={s.inputGroup}>
+        <Text style={s.label}>ACCOUNT</Text>
+        <View style={s.sourceToggleRow}>
+          <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => setSource('bank')}>
+            <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#000000' : colors.textMuted} />
+            <Text style={[s.sourceBtnTxt, source === 'bank' && s.sourceBtnTxtActive]}>BANK</Text>
+          </Pressable>
+          <View style={s.sourceDivider} />
+          <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => setSource('hand')}>
+            <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#000000' : colors.textMuted} />
+            <Text style={[s.sourceBtnTxt, source === 'hand' && s.sourceBtnTxtActive]}>HAND CASH</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Date */}
+      <View style={s.inputGroup}>
+        <Text style={s.label}>DATE</Text>
+        <Pressable style={s.dateBtn} onPress={() => setDatePickerVisibility(true)}>
+          <Text style={s.dateTxt}>{formatDateShort(date).toUpperCase()}</Text>
+          <MaterialIcons name="calendar-today" size={20} color={colors.textPrimary} />
+        </Pressable>
+      </View>
+
+      {/* Category Chips */}
+      <View style={s.inputGroup}>
+        <Text style={s.label}>CATEGORY</Text>
+        <View style={s.chipContainer}>
+          {CATEGORIES[type].map((cat) => (
+            <Pressable
+              key={cat}
+              style={[
+                s.chip,
+                category === cat && (type === 'expense' ? s.chipExpenseActive : s.chipIncomeActive)
+              ]}
+              onPress={() => setCategory(cat)}
+            >
+              <Text style={[s.chipTxt, category === cat && s.chipTxtActive]}>{cat}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Description */}
+      <View style={s.inputGroup}>
+        <Text style={s.label}>DESCRIPTION (OPTIONAL)</Text>
+        <TextInput
+          style={s.descInput}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="What was this for?"
+          placeholderTextColor={colors.textMuted}
+        />
+      </View>
+
+      <View style={{ height: 120 }} />
+
+      {/* Save Button */}
+      <View style={s.saveBtnContainer}>
+        <View style={s.saveBtnShadow} />
+        <Pressable 
+          style={[s.saveBtn, { backgroundColor: type === 'income' ? colors.income : colors.expense }]} 
+          onPress={handleSave}
+        >
+          <Text style={s.saveBtnTxt}>SAVE {type.toUpperCase()}</Text>
+        </Pressable>
+      </View>
 
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
-        mode="datetime"
-        onConfirm={handleConfirmDate}
-        onCancel={hideDatePicker}
+        mode="date"
         date={new Date(date)}
-        themeVariant={isDark ? "dark" : "light"}
+        onConfirm={(d) => { setDatePickerVisibility(false); setDate(d.toISOString().split('T')[0]); }}
+        onCancel={() => setDatePickerVisibility(false)}
       />
-
-      <Text style={s.label}>Description (Optional)</Text>
-      <TextInput
-        style={s.input}
-        value={description}
-        onChangeText={setDescription}
-        placeholderTextColor={colors.textMuted}
-        keyboardAppearance={isDark ? 'dark' : 'light'}
-      />
-
-        <Pressable style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveTxt}>{isEditing ? 'Update Transaction' : 'Save Transaction'}</Text>
-        </Pressable>
-
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  typeToggle: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.xl },
-  toggleBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: Radius.md },
-  expenseActive: { backgroundColor: colors.expense },
-  incomeActive: { backgroundColor: colors.income },
-  toggleTxt: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
-  activeTxt: { color: colors.white },
-  label: { fontSize: 13, color: colors.textSecondary, marginBottom: Spacing.xs, marginTop: Spacing.md },
-  inputBig: { fontSize: 36, fontWeight: '700', color: colors.textPrimary, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: Spacing.sm, marginBottom: Spacing.sm },
-  input: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, color: colors.textPrimary, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  dateInput: { backgroundColor: colors.bgInput, borderRadius: Radius.md, paddingHorizontal: Spacing.md, height: 48, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-  dateText: { color: colors.textPrimary, fontSize: 16 },
-  sourceToggle: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.lg, padding: 4, marginBottom: Spacing.sm },
-  sourceBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.md, flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  sourceBankActive: { backgroundColor: colors.bank },
-  sourceHandActive: { backgroundColor: colors.wallet },
-  sourceTxt: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
-  chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full, backgroundColor: colors.bgInput, borderWidth: 1, borderColor: colors.border },
-  chipExpense: { backgroundColor: colors.expense, borderColor: colors.expense },
-  chipIncome: { backgroundColor: colors.income, borderColor: colors.income },
-  chipTxt: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
-  saveBtn: { backgroundColor: colors.accent, height: 52, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xl * 1.5 },
-  saveTxt: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  typeToggleContainer: { marginBottom: Spacing.xl },
+  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border },
+  typeBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  typeDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  typeBtnExpenseActive: { backgroundColor: colors.expense },
+  typeBtnIncomeActive: { backgroundColor: colors.income },
+  typeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
+  typeBtnTxtActive: { color: '#000000' },
+  inputGroup: { marginBottom: Spacing.lg },
+  label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
+  amountInputRowExpense: { backgroundColor: colors.expenseBg },
+  amountInputRowIncome: { backgroundColor: colors.incomeBg },
+  amountPrefix: { fontSize: 24, fontFamily: Fonts.body, marginRight: Spacing.md },
+  amountPrefixExpense: { color: colors.expense },
+  amountPrefixIncome: { color: colors.income },
+  amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
+  sourceToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  sourceBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12, gap: 8 },
+  sourceDivider: { width: 2, backgroundColor: colors.border },
+  sourceBtnBankActive: { backgroundColor: colors.bank },
+  sourceBtnHandActive: { backgroundColor: colors.wallet },
+  sourceBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
+  sourceBtnTxtActive: { color: '#000000' },
+  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48 },
+  dateTxt: { fontSize: 15, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 0.5 },
+  chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  chipExpenseActive: { backgroundColor: colors.expense },
+  chipIncomeActive: { backgroundColor: colors.income },
+  chipTxt: { fontSize: 13, fontFamily: Fonts.body, color: colors.textSecondary },
+  chipTxtActive: { color: '#000000', fontFamily: Fonts.heading },
+  descInput: { backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
+  saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
+  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
 });
