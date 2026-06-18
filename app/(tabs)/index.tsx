@@ -197,14 +197,14 @@ export default function DashboardScreen() {
         <Card style={s.balanceCard}>
           <View style={s.balanceRow}>
             <View style={s.balanceInfo}>
-              <Text style={s.balanceLabel}>NET BALANCE</Text>
+              <Text style={s.balanceLabel}>BUDGET LEFT</Text>
               <Text
                 style={[
                   s.balanceAmount,
-                  { color: totals.balance >= 0 ? colors.income : colors.expense },
+                  { color: (budget - totals.expenses) >= 0 ? colors.income : colors.expense },
                 ]}
               >
-                {formatCurrency(totals.balance)}
+                {budget > 0 ? formatCurrency(budget - totals.expenses) : 'NOT SET'}
               </Text>
             </View>
 
