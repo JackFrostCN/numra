@@ -170,6 +170,8 @@ export const CATEGORIES = {
     'Subscriptions',
     'Travel',
     'Gifts',
+    'Bills',
+    'Debt',
     'Other',
   ],
   income: [
@@ -180,6 +182,7 @@ export const CATEGORIES = {
     'Rental',
     'Gift',
     'Refund',
+    'Debt',
     'Other',
   ],
 };

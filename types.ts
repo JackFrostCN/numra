@@ -23,6 +23,8 @@ export const EXPENSE_CATEGORIES = [
   'Subscriptions',
   'Travel',
   'Gifts',
+  'Bills',
+  'Debt',
   'Other',
 ] as const;
 
@@ -34,6 +36,7 @@ export const INCOME_CATEGORIES = [
   'Rental',
   'Gift',
   'Refund',
+  'Debt',
   'Other',
 ] as const;
 
