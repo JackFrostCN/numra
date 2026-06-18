@@ -41,11 +41,11 @@ export default function LoansScreen() {
       </View>
 
       <View style={s.tabRow}>
-        <Pressable onPress={() => setTab('borrowed')} style={[s.tab, tab === 'borrowed' && s.tabActive]}>
+        <Pressable onPress={() => setTab('borrowed')} style={[s.tab, tab === 'borrowed' && s.tabBorrowedActive]}>
           <Text style={[s.tabTxt, tab === 'borrowed' && s.tabTxtActive]}>I OWE</Text>
         </Pressable>
         <View style={s.tabDivider} />
-        <Pressable onPress={() => setTab('lent')} style={[s.tab, tab === 'lent' && s.tabActive]}>
+        <Pressable onPress={() => setTab('lent')} style={[s.tab, tab === 'lent' && s.tabLentActive]}>
           <Text style={[s.tabTxt, tab === 'lent' && s.tabTxtActive]}>OWED TO ME</Text>
         </Pressable>
       </View>
@@ -117,7 +117,8 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, marginBottom: Spacing.lg },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   tabDivider: { width: colors.borderWidth, backgroundColor: colors.border },
-  tabActive: { backgroundColor: colors.accent },
+  tabBorrowedActive: { backgroundColor: colors.expense },
+  tabLentActive: { backgroundColor: colors.income },
   tabTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted },
   tabTxtActive: { color: '#000000' },
   summary: { alignItems: 'center', marginBottom: Spacing.lg },

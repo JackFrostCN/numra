@@ -20,7 +20,7 @@ export default function AddTransactionModal() {
   const colors = useThemeColors();
 
   const [type, setType] = useState<FormMode>('expense');
-  const [source, setSource] = useState<'bank' | 'hand'>('bank');
+  const [source, setSource] = useState<'bank' | 'hand'>('hand');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(CATEGORIES.expense[0]);
   const [date, setDate] = useState(getTodayISO());
