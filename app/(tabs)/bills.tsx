@@ -26,13 +26,31 @@ export default function BillsScreen() {
   const isCurrentMonth = monthOffset === 0;
 
   const loadData = useCallback(async () => {
-    const allBills = await getBills(db);
-    setBills(allBills.map(b => ({ ...b, is_paid: false })));
-  }, [db]);
+    const [allBills, payments] = await Promise.all([
+      getBills(db),
+      getBillPaymentsForMonth(db, yearMonth)
+    ]);
+    
+    setBills(allBills.map(b => ({
+      ...b,
+      is_paid: payments.some(p => p.bill_id === b.id)
+    })));
+  }, [db, yearMonth]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-  const totalUnpaid = bills.reduce((sum, b) => sum + b.amount, 0);
+  const handleTogglePaid = async (bill: Bill & { is_paid: boolean }) => {
+    if (bill.is_paid) {
+      await markBillUnpaid(db, bill.id, yearMonth);
+      loadData();
+    } else {
+      const today = new Date().toISOString().split('T')[0];
+      await markBillPaid(db, bill.id, yearMonth, today);
+      loadData();
+    }
+  };
+
+  const totalUnpaid = bills.filter(b => !b.is_paid).reduce((sum, b) => sum + b.amount, 0);
 
   const s = createStyles(colors);
 
@@ -46,7 +64,7 @@ export default function BillsScreen() {
 
       <View style={s.summaryWrapper}>
         <View style={s.summaryCard}>
-          <Text style={s.summaryLbl}>TOTAL MONTHLY BILLS</Text>
+          <Text style={s.summaryLbl}>UNPAID BILLS THIS MONTH</Text>
           <Text style={s.summaryAmt}>{formatCurrency(totalUnpaid)}</Text>
         </View>
       </View>
@@ -78,12 +96,25 @@ export default function BillsScreen() {
                   <CategoryBadge category={bill.category} />
                   <View style={s.billInfo}>
                     <Text style={s.billName}>{bill.name}</Text>
-                    <Text style={s.billDue}>
-                      {`DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
+                    <Text style={[s.billDue, overdue && { color: colors.danger }]}>
+                      {bill.is_paid ? 'PAID' : overdue ? 'OVERDUE' : `DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
                     </Text>
                   </View>
                   <View style={s.billRight}>
                     <Text style={s.billAmt}>{formatCurrency(bill.amount)}</Text>
+                    <Pressable
+                      style={s.checkButton}
+                      onPress={(e) => {
+                        e.stopPropagation(); // prevent card press
+                        handleTogglePaid(bill);
+                      }}
+                    >
+                      <MaterialIcons 
+                        name={bill.is_paid ? "check-circle" : "radio-button-unchecked"} 
+                        size={28} 
+                        color={bill.is_paid ? colors.success : colors.textMuted} 
+                      />
+                    </Pressable>
                   </View>
                 </View>
               </Card>
@@ -113,6 +144,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   billInfo: { flex: 1 },
   billName: { fontSize: 16, fontFamily: Fonts.heading, color: colors.textPrimary },
   billDue: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
-  billRight: { alignItems: 'flex-end', gap: Spacing.sm },
+  billRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   billAmt: { fontSize: 16, fontFamily: Fonts.mono, color: colors.textPrimary },
+  checkButton: { padding: Spacing.xs },
 });

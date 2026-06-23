@@ -383,33 +383,15 @@ export async function markBillPaid(
   billId: number,
   month: string, // "YYYY-MM"
   paidDate: string,
-  source: 'bank' | 'hand'
+  source: 'bank' | 'hand' = 'bank'
 ) {
-  await db.withTransactionAsync(async () => {
-    const bill = await db.getFirstAsync<Bill>('SELECT * FROM bills WHERE id = ?', billId);
-    if (!bill) return;
-
-    const result = await db.runAsync(
-      'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month, source) VALUES (?, ?, ?, ?)',
-      billId,
-      paidDate,
-      month,
-      source
-    );
-    const paymentId = result.lastInsertRowId;
-
-    await db.runAsync(
-      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      'expense',
-      bill.amount,
-      bill.category,
-      `Bill Payment: ${bill.name}`,
-      paidDate,
-      source,
-      'bill_payment',
-      paymentId
-    );
-  });
+  await db.runAsync(
+    'INSERT OR REPLACE INTO bill_payments (bill_id, paid_date, month, source) VALUES (?, ?, ?, ?)',
+    billId,
+    paidDate,
+    month,
+    source
+  );
 }
 
 export async function markBillUnpaid(
@@ -417,17 +399,11 @@ export async function markBillUnpaid(
   billId: number,
   month: string
 ) {
-  await db.withTransactionAsync(async () => {
-    const payment = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM bill_payments WHERE bill_id = ? AND month = ?',
-      billId,
-      month
-    );
-    if (payment) {
-      await db.runAsync('DELETE FROM transactions WHERE linked_type = ? AND linked_id = ?', 'bill_payment', payment.id);
-      await db.runAsync('DELETE FROM bill_payments WHERE id = ?', payment.id);
-    }
-  });
+  await db.runAsync(
+    'DELETE FROM bill_payments WHERE bill_id = ? AND month = ?',
+    billId,
+    month
+  );
 }
 
 export async function getBillPaymentsForMonth(
