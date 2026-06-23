@@ -114,6 +114,7 @@ export default function DashboardScreen() {
       // Bills sorting
       setTotalBillsCount(bills.length);
       const upcoming = bills
+        .filter((b) => daysUntilDue(b.due_day) <= 10)
         .sort((a, b) => daysUntilDue(a.due_day) - daysUntilDue(b.due_day))
         .slice(0, 3);
       setUpcomingBills(upcoming);
