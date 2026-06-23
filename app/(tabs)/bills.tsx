@@ -27,40 +27,12 @@ export default function BillsScreen() {
 
   const loadData = useCallback(async () => {
     const allBills = await getBills(db);
-    const payments = await getBillPaymentsForMonth(db, yearMonth);
-    const paidIds = new Set(payments.map(p => p.bill_id));
-    
-    setBills(allBills.map(b => ({ ...b, is_paid: paidIds.has(b.id) })));
-  }, [db, yearMonth]);
+    setBills(allBills.map(b => ({ ...b, is_paid: false })));
+  }, [db]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-  const togglePaid = async (billId: number, isPaid: boolean) => {
-    if (isPaid) {
-      await markBillUnpaid(db, billId, yearMonth);
-      loadData();
-    } else {
-      Alert.alert('Pay From', 'Choose where you paid this bill from:', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: '🏦 Bank',
-          onPress: async () => {
-            await markBillPaid(db, billId, yearMonth, new Date().toISOString(), 'bank');
-            loadData();
-          },
-        },
-        {
-          text: '💵 Hand',
-          onPress: async () => {
-            await markBillPaid(db, billId, yearMonth, new Date().toISOString(), 'hand');
-            loadData();
-          },
-        },
-      ]);
-    }
-  };
-
-  const totalUnpaid = bills.filter(b => !b.is_paid).reduce((sum, b) => sum + b.amount, 0);
+  const totalUnpaid = bills.reduce((sum, b) => sum + b.amount, 0);
 
   const s = createStyles(colors);
 
@@ -76,7 +48,7 @@ export default function BillsScreen() {
         {/* Hard shadow */}
         <View style={s.summaryShadow} />
         <View style={s.summaryCard}>
-          <Text style={s.summaryLbl}>UNPAID THIS MONTH</Text>
+          <Text style={s.summaryLbl}>TOTAL MONTHLY BILLS</Text>
           <Text style={s.summaryAmt}>{formatCurrency(totalUnpaid)}</Text>
         </View>
       </View>
@@ -107,21 +79,13 @@ export default function BillsScreen() {
                 <View style={s.billRow}>
                   <CategoryBadge category={bill.category} />
                   <View style={s.billInfo}>
-                    <Text style={[s.billName, bill.is_paid && s.textPaid]}>{bill.name}</Text>
-                    <Text style={[s.billDue, overdue && s.textOverdue]}>
-                      {bill.is_paid ? 'PAID' : overdue ? 'OVERDUE' : `DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
+                    <Text style={s.billName}>{bill.name}</Text>
+                    <Text style={s.billDue}>
+                      {`DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
                     </Text>
                   </View>
                   <View style={s.billRight}>
-                    <Text style={[s.billAmt, bill.is_paid && s.textPaid]}>{formatCurrency(bill.amount)}</Text>
-                    <View style={s.actionsRow}>
-                      <Pressable 
-                        onPress={() => togglePaid(bill.id, bill.is_paid)}
-                        style={[s.checkBtn, bill.is_paid && s.checkBtnPaid]}
-                      >
-                        <MaterialIcons name="check" size={20} color={bill.is_paid ? '#000000' : colors.textMuted} />
-                      </Pressable>
-                    </View>
+                    <Text style={s.billAmt}>{formatCurrency(bill.amount)}</Text>
                   </View>
                 </View>
               </Card>
@@ -154,9 +118,4 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   billDue: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
   billRight: { alignItems: 'flex-end', gap: Spacing.sm },
   billAmt: { fontSize: 16, fontFamily: Fonts.mono, color: colors.textPrimary },
-  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  checkBtn: { width: 32, height: 32, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  checkBtnPaid: { backgroundColor: colors.success },
-  textPaid: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  textOverdue: { color: colors.danger },
 });

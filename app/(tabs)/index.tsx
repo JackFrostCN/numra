@@ -44,7 +44,8 @@ export default function DashboardScreen() {
 
   const [totals, setTotals] = useState<MonthlyTotals>({ income: 0, expenses: 0, balance: 0 });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
-  const [upcomingBills, setUpcomingBills] = useState<(Bill & { is_paid: boolean })[]>([]);
+  const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
+  const [totalBillsCount, setTotalBillsCount] = useState(0);
   const [activeLoansCount, setActiveLoansCount] = useState(0);
   const [totalDebt, setTotalDebt] = useState(0);
   const [budget, setBudget] = useState(0);
@@ -91,14 +92,12 @@ export default function DashboardScreen() {
         .reduce((sum: number, l: Loan) => sum + l.remaining_amount, 0);
       setTotalDebt(debt);
 
-      // Bills with paid status
-      const paidBillIds = new Set(billPayments.map((p) => p.bill_id));
-      const billsWithStatus = bills
-        .map((b) => ({ ...b, is_paid: paidBillIds.has(b.id) }))
-        .filter((b) => !b.is_paid)
+      // Bills sorting
+      setTotalBillsCount(bills.length);
+      const upcoming = bills
         .sort((a, b) => daysUntilDue(a.due_day) - daysUntilDue(b.due_day))
         .slice(0, 3);
-      setUpcomingBills(billsWithStatus);
+      setUpcomingBills(upcoming);
     } catch (error) {
       console.error('Dashboard load error:', error);
     }
@@ -270,8 +269,8 @@ export default function DashboardScreen() {
             <View style={[s.quickStatIcon, { backgroundColor: colors.billBg }]}>
               <MaterialIcons name="receipt-long" size={20} color={colors.bill} />
             </View>
-            <Text style={s.quickStatValue}>{upcomingBills.length}</Text>
-            <Text style={s.quickStatLabel}>UNPAID BILLS</Text>
+            <Text style={s.quickStatValue}>{totalBillsCount}</Text>
+            <Text style={s.quickStatLabel}>TOTAL BILLS</Text>
           </Card>
         </View>
 

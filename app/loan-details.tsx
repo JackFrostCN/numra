@@ -1,16 +1,14 @@
 import { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { getLoanById, getLoanPayments, recordLoanPayment } from '@/db/queries';
-import { formatCurrency, formatDateShort, getTodayISO } from '@/utils/helpers';
+import { getLoanById, getLoanPayments } from '@/db/queries';
+import { formatCurrency, formatDateShort } from '@/utils/helpers';
 import type { Loan, LoanPayment } from '@/types';
 
 export default function LoanDetailsScreen() {
@@ -21,9 +19,6 @@ export default function LoanDetailsScreen() {
 
   const [loan, setLoan] = useState<Loan | null>(null);
   const [payments, setPayments] = useState<LoanPayment[]>([]);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState(getTodayISO());
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -34,23 +29,6 @@ export default function LoanDetailsScreen() {
   }, [id, db]);
 
   useEffect(() => { loadData(); }, [loadData]);
-
-  const handleRecordPayment = async () => {
-    if (!loan || !paymentAmount || isNaN(Number(paymentAmount))) {
-      alert('Enter a valid amount');
-      return;
-    }
-
-    const amount = Number(paymentAmount);
-    if (amount > loan.remaining_amount) {
-      alert('Payment exceeds remaining amount');
-      return;
-    }
-
-    await recordLoanPayment(db, loan.id, amount, paymentDate, 'bank');
-    setPaymentAmount('');
-    loadData();
-  };
 
   if (!loan) return <View style={[{ flex: 1, backgroundColor: colors.bg }]} />;
 
@@ -76,36 +54,6 @@ export default function LoanDetailsScreen() {
           </View>
         </View>
 
-        {!isCompleted && (
-          <Card style={s.paymentCard}>
-            <Text style={s.sectionTitle}>RECORD PAYMENT</Text>
-            
-            <View style={s.inputRow}>
-              <View style={s.inputWrapper}>
-                <Text style={s.inputPrefix}>LKR</Text>
-                <TextInput
-                  style={s.input}
-                  value={paymentAmount}
-                  onChangeText={setPaymentAmount}
-                  keyboardType="decimal-pad"
-                  placeholder={loan.remaining_amount.toString()}
-                  placeholderTextColor={colors.textMuted}
-                />
-              </View>
-              <Pressable style={s.dateBtn} onPress={() => setDatePickerVisibility(true)}>
-                <MaterialIcons name="calendar-today" size={20} color={colors.textPrimary} />
-              </Pressable>
-            </View>
-
-            <Pressable 
-              style={[s.recordBtn, { backgroundColor: loan.type === 'borrowed' ? colors.expense : colors.income }]} 
-              onPress={handleRecordPayment}
-            >
-              <Text style={s.recordBtnTxt}>RECORD PAYMENT</Text>
-            </Pressable>
-          </Card>
-        )}
-
         <Text style={[s.sectionTitle, { marginTop: Spacing.lg }]}>PAYMENT HISTORY</Text>
         {payments.length === 0 ? (
           <Text style={s.emptyTxt}>No payments recorded yet.</Text>
@@ -120,14 +68,6 @@ export default function LoanDetailsScreen() {
           </View>
         )}
       </ScrollView>
-
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        date={new Date(paymentDate)}
-        onConfirm={(d) => { setDatePickerVisibility(false); setPaymentDate(d.toISOString().split('T')[0]); }}
-        onCancel={() => setDatePickerVisibility(false)}
-      />
     </View>
   );
 }
@@ -142,15 +82,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   progressContainer: { marginTop: Spacing.sm },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
   progressLbl: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textSecondary, letterSpacing: 0.5 },
-  paymentCard: { padding: Spacing.base },
   sectionTitle: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
-  inputRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.base },
-  inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.md },
-  inputPrefix: { fontSize: 18, fontFamily: Fonts.body, color: colors.textMuted, marginRight: 8 },
-  input: { flex: 1, height: 48, fontSize: 20, fontFamily: Fonts.mono, color: colors.textPrimary },
-  dateBtn: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border },
-  recordBtn: { height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.border },
-  recordBtnTxt: { fontSize: 14, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
   emptyTxt: { fontSize: 14, fontFamily: Fonts.body, color: colors.textMuted },
   historyContainer: { backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', padding: Spacing.base, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
