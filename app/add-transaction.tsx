@@ -5,7 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { addTransaction, updateTransaction, getTransactionById, addDeposit, addWithdrawal } from '@/db/queries';
 import { CATEGORIES, getTodayISO, formatDateShort } from '@/utils/helpers';
@@ -142,12 +142,12 @@ export default function AddTransactionModal() {
           <Text style={s.label}>ACCOUNT</Text>
           <View style={s.sourceToggleRow}>
             <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => setSource('bank')}>
-              <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#000000' : colors.textMuted} />
+              <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#FFFFFF' : colors.textMuted} />
               <Text style={[s.sourceBtnTxt, source === 'bank' && s.sourceBtnTxtActive]}>BANK</Text>
             </Pressable>
             <View style={s.sourceDivider} />
             <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => setSource('hand')}>
-              <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#000000' : colors.textMuted} />
+              <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#FFFFFF' : colors.textMuted} />
               <Text style={[s.sourceBtnTxt, source === 'hand' && s.sourceBtnTxtActive]}>HAND CASH</Text>
             </Pressable>
           </View>
@@ -224,18 +224,18 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
   typeToggleContainer: { marginBottom: Spacing.xl },
-  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border },
-  typeBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  typeDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2 },
+  typeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.full },
+  typeDivider: { width: 0 },
   typeBtnExpenseActive: { backgroundColor: colors.expense },
   typeBtnIncomeActive: { backgroundColor: colors.income },
   typeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
-  typeBtnTxtActive: { color: '#000000' },
+  typeBtnTxtActive: { color: '#FFFFFF' },
   inputGroup: { marginBottom: Spacing.lg },
   label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
-  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
-  amountInputRowExpense: { backgroundColor: colors.expenseBg },
-  amountInputRowIncome: { backgroundColor: colors.incomeBg },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, borderRadius: Radius.md },
+  amountInputRowExpense: { backgroundColor: colors.bgCard },
+  amountInputRowIncome: { backgroundColor: colors.bgCard },
   amountInputRowTransfer: { backgroundColor: colors.bgCard },
   amountPrefix: { fontSize: 24, fontFamily: Fonts.body, marginRight: Spacing.md },
   amountPrefixExpense: { color: colors.expense },
@@ -244,24 +244,24 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
   typeBtnBankActive: { backgroundColor: colors.bank },
   typeBtnWalletActive: { backgroundColor: colors.wallet },
-  sourceToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
-  sourceBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 12, gap: 8 },
-  sourceDivider: { width: 2, backgroundColor: colors.border },
+  sourceToggleRow: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2 },
+  sourceBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 10, gap: 8, borderRadius: Radius.full },
+  sourceDivider: { width: 0 },
   sourceBtnBankActive: { backgroundColor: colors.bank },
   sourceBtnHandActive: { backgroundColor: colors.wallet },
   sourceBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
-  sourceBtnTxtActive: { color: '#000000' },
-  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48 },
+  sourceBtnTxtActive: { color: '#FFFFFF' },
+  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, borderRadius: Radius.md },
   dateTxt: { fontSize: 15, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 0.5 },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  chip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.bgElevated, borderRadius: Radius.full },
   chipExpenseActive: { backgroundColor: colors.expense },
   chipIncomeActive: { backgroundColor: colors.income },
   chipTxt: { fontSize: 13, fontFamily: Fonts.body, color: colors.textSecondary },
-  chipTxtActive: { color: '#000000', fontFamily: Fonts.heading },
-  descInput: { backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
+  chipTxtActive: { color: '#FFFFFF', fontFamily: Fonts.heading },
+  descInput: { backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary, borderRadius: Radius.md },
   saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
-  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
-  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
-  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
+  saveBtnShadow: { display: 'none' },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderRadius: Radius.full },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#FFFFFF', letterSpacing: 1 },
 });

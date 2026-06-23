@@ -1,85 +1,52 @@
-# Numra — Neubrutalism Design System
 
-This document outlines the **Neubrutalism Pop** design system used across the Numra application. The system represents a bold, confident, and playful aesthetic inspired by modern web design trends and Gen Z styling.
+**Visual Style**
 
-## 1. Core Principles
+Clean, minimal, and friendly. White card-based layout with soft shadows, generous white space, and a warm coral/salmon as the primary accent. The overall feel is calm and approachable — finances without the anxiety.
 
-1. **High Contrast:** Strong delineation between elements. Elements stand out through bold borders rather than subtle shadows.
-2. **Sharp Geometry:** Minimal border radius. Elements are mostly rectangular with sharp or very slightly rounded edges.
-3. **Hard Shadows:** No blur. Shadows are created using offset solid shapes, creating a "stacked paper" effect.
-4. **Vivid Color Blocking:** Saturated, flat colors used in large blocks without gradients.
-5. **Mechanical Interactions:** Rigid, pure-translation animations on press (no spring physics).
-6. **Bold Typography:** High-impact, geometric sans-serif fonts used at heavy weights, often in ALL-CAPS for structural elements.
+**Color Palette**
 
-## 2. Color Palette
+| Role | Hex |
+|---|---|
+| Background | `#F5F6FA` |
+| Card / Surface | `#FFFFFF` |
+| Primary Accent (CTA, active icons) | `#F07B6B` (coral) |
+| Chart — Category 1 | `#7DD5D8` (teal/sky) |
+| Chart — Category 2 | `#F07B6B` (coral) |
+| Chart — Category 3 | `#F5C242` (amber) |
+| Chart — Category 4 | `#2E7D5E` (dark green) |
+| Heading text | `#1C3557` (deep navy) |
+| Body / label text | `#8A95A5` (muted grey) |
 
-The application uses a dual-theme system, both anchored by high-contrast black and cream.
+**Typography**
 
-### Light Theme (Cream Base)
-*   **Background:** `#FFFDF5` (Warm Cream)
-*   **Surface/Card:** `#FFFFFF`
-*   **Elevated/Input:** `#FFF8E7`
-*   **Border:** `#000000` (Solid Black)
-*   **Text Primary:** `#000000`
-*   **Text Secondary:** `#333333`
-*   **Text Muted:** `#666666`
+- Headings: Bold, `#1C3557`, ~20–22sp
+- Section labels (CATEGORIES, INCOMING EXPENSES): Uppercase, tracked, 11sp, muted grey
+- Expense item titles: Semi-bold, 16sp, navy
+- Supporting text: Regular, 13sp, muted grey
 
-### Dark Theme (Deep Purple Base)
-*   **Background:** `#1A1A2E` (Deep Purple-Black)
-*   **Surface/Card:** `#2D2B55`
-*   **Elevated/Input:** `#3D3A6E`
-*   **Border:** `#FFFDF5` (Cream)
-*   **Text Primary:** `#FFFDF5`
-*   **Text Secondary:** `#D4D2E8`
-*   **Text Muted:** `#9B98C4`
+**Layout — List View (Screen 1)**
 
-### Semantic & Accent Colors (Shared)
-Vivid, high-saturation colors used to block out key areas.
-*   **Accent:** `#FF6B6B` (Hot Red)
-*   **Income/Success:** `#2ECC71` (Vivid Green)
-*   **Expense/Danger:** `#FF6B6B` (Hot Red)
-*   **Loan/Warning:** `#FFD93D` (Vivid Yellow)
-*   **Bill:** `#C4B5FD` (Soft Violet)
-*   **Bank:** `#45B7D1` (Bright Cyan)
-*   **Wallet:** `#FF8C42` (Bright Orange)
+- Back arrow + 3-dot menu in top bar
+- Page title "My Expenses" + subtitle "Summary (private)" below
+- Date row with calendar icon + comparison text ("18% more than last month")
+- Section: **CATEGORIES** — 2×2 grid of pill/card buttons with emoji icon + label
+- "MORE ▼" expandable row
+- Section: **INCOMING EXPENSES** — vertical card list; each card has category label (colored, uppercase), expense name (bold), description text, location row, and a full-width CTA button at the bottom
 
-## 3. Typography
+**Layout — Chart View (Screen 2)**
 
-*   **Primary Font:** `Space Grotesk` (Geometric, slightly quirky)
-    *   **Bold (700):** Used for headlines, large balances, and ALL-CAPS structural labels (tabs, section titles).
-    *   **Medium (500):** Used for body text, button labels, and standard UI text.
-    *   **Regular (400):** Used sparingly for muted descriptions.
-*   **Monospace Font:** `JetBrains Mono`
-    *   **Medium/Bold:** Exclusively used for financial amounts and dates to ensure tabular alignment and a technical feel.
+- Same header and date row
+- Toggle between list view and chart view (icon buttons, top-right of section)
+- Large donut/doughnut chart centered — center label shows total count + "Expenses"
+- Percentage labels on each slice
+- Below chart: legend rows — colored square + category name + amount + percentage, with the active/selected row highlighted in amber
 
-## 4. Key Visual Components
+**Signature Element**
 
-### Borders
-*   **Width:** `4px` in Light Mode, `3px` in Dark Mode.
-*   **Application:** Applied to almost every structural element: cards, buttons, inputs, tab bars, headers, and bottom nav.
+The coral full-width **CONFIRM** button at the bottom of each expense card — pill-shaped, strong contrast, feels decisive without being alarming.
 
-### Shadows
-*   **Style:** Hard offset. No blur radius.
-*   **Offset:** `X: 4, Y: 4` (Down and right).
-*   **Color:** Solid `#000000` (Light Mode) or `#FFFDF5` (Dark Mode).
-*   **Implementation:** Achieved via an absolutely positioned `View` sitting behind the main element, slightly offset.
+**Component Notes**
 
-### Corners (Border Radius)
-*   **Cards/Buttons/Inputs:** `4px` (very slight rounding to prevent harsh pixelation) or `0px` (completely sharp).
-*   **Icons/Badges:** `4px` or `0px`.
-*   *Note: Traditional pill shapes or full circles are avoided entirely.*
-
-## 5. Interaction Design
-
-### The "Mechanical Press"
-Instead of scaling down or using spring physics, interactive elements use a rigid translation effect.
-*   **Action:** On press, the element translates `+4px` on both X and Y axes.
-*   **Result:** The element perfectly covers its own hard shadow, giving the physical sensation of a button being pushed into a panel.
-*   **Timing:** Linear/cubic, fast duration (`80ms`).
-
-## 6. Layout Rules
-
-*   **Headers:** Thick bottom border, ALL-CAPS bold titles.
-*   **Tab Bar:** Thick top border, no rounded corners, square active states.
-*   **Cards:** Thick borders all around, hard shadow underneath.
-*   **Spacing:** Follows a strict `4px` baseline grid (`Spacings: 4, 8, 12, 16, 20, 24, 32, 40`).
+- Category chips: white card, subtle shadow, icon on the left (colored), label text beside it, ~48dp height
+- Chart slices: no stroke/gap between them, smooth and solid
+- Legend rows: left-aligned color swatch (square, rounded corners), name + amount right-aligned, selected row gets a full amber background highlight with white text

@@ -58,6 +58,18 @@ export async function getTransactionsByMonth(
   );
 }
 
+export async function getCategoryTotals(
+  db: SQLiteDatabase,
+  yearMonth: string
+): Promise<{ category: string; total: number }[]> {
+  return db.getAllAsync<{ category: string; total: number }>(
+    `SELECT category, COALESCE(SUM(amount), 0) as total FROM transactions 
+     WHERE type = 'expense' AND strftime('%Y-%m', date, 'localtime') = ?
+     GROUP BY category ORDER BY total DESC`,
+    yearMonth
+  );
+}
+
 export async function getMonthlyTotals(
   db: SQLiteDatabase,
   yearMonth: string

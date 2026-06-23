@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { FAB } from '@/components/ui/fab';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Fonts, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getAllLoans } from '@/db/queries';
 import { formatCurrency, formatDateShort } from '@/utils/helpers';
@@ -112,15 +112,15 @@ export default function LoansScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.borderLight, marginBottom: Spacing.sm },
   title: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 1 },
-  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, marginBottom: Spacing.lg },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  tabDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  tabRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2, marginBottom: Spacing.lg },
+  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.full },
+  tabDivider: { width: 0 },
   tabBorrowedActive: { backgroundColor: colors.expense },
   tabLentActive: { backgroundColor: colors.income },
-  tabTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted },
-  tabTxtActive: { color: '#000000' },
+  tabTxt: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textMuted },
+  tabTxtActive: { color: '#FFFFFF' },
   summary: { alignItems: 'center', marginBottom: Spacing.lg },
   summaryLabel: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: 4, letterSpacing: 1 },
   summaryAmt: { fontSize: 36, fontFamily: Fonts.heading },
@@ -131,8 +131,8 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   cardCompleted: { opacity: 0.6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm },
   personName: { fontSize: 18, fontFamily: Fonts.heading, color: colors.textPrimary },
-  statusBadge: { backgroundColor: colors.loanBg, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 2, borderColor: colors.loan },
-  statusBadgeCompleted: { backgroundColor: colors.incomeBg, borderColor: colors.income },
+  statusBadge: { backgroundColor: colors.loanBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full },
+  statusBadgeCompleted: { backgroundColor: colors.incomeBg },
   statusTxt: { fontSize: 10, fontFamily: Fonts.heading, color: colors.loan },
   statusTxtCompleted: { color: colors.success },
   totalAmt: { fontSize: 24, fontFamily: Fonts.mono, color: colors.textPrimary, marginBottom: Spacing.md },

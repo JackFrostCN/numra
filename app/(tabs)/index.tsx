@@ -9,7 +9,8 @@ import { CategoryBadge } from '@/components/ui/category-badge';
 import { StatRing } from '@/components/ui/stat-ring';
 import { SummaryCard } from '@/components/ui/summary-card';
 import { FAB } from '@/components/ui/fab';
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { DonutChart, type ChartData } from '@/components/ui/donut-chart';
+import { Spacing, Fonts, Radius, Shadows, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import {
   getActiveLoans,
@@ -20,6 +21,7 @@ import {
   getRecentTransactions,
   getSetting,
   getBankSummary,
+  getCategoryTotals,
 } from '@/db/queries';
 import type { Bill, Loan, MonthlyTotals, Transaction, BankSummary } from '@/types';
 import {
@@ -56,6 +58,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [hideBalances, setHideBalances] = useState(true);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
 
   const greeting = useMemo(() => getGreeting(), [refreshKey]);
   const todayDate = useMemo(
@@ -74,7 +77,7 @@ export default function DashboardScreen() {
   const loadData = useCallback(async () => {
     try {
       const todayISO = getTodayISO();
-      const [monthTotals, dayTotals, recent, bills, billPayments, loans, budgetSetting, summary] = await Promise.all([
+      const [monthTotals, dayTotals, recent, bills, billPayments, loans, budgetSetting, summary, categories] = await Promise.all([
         getMonthlyTotals(db, currentMonth),
         getDailyTotals(db, todayISO),
         getRecentTransactions(db, 5),
@@ -83,6 +86,7 @@ export default function DashboardScreen() {
         getActiveLoans(db),
         getSetting(db, 'monthly_budget'),
         getBankSummary(db),
+        getCategoryTotals(db, currentMonth),
       ]);
 
       setTotals(monthTotals);
@@ -91,6 +95,15 @@ export default function DashboardScreen() {
       setActiveLoansCount(loans.length);
       setBudget(Number(budgetSetting) || 0);
       setBankSummary(summary);
+
+      const chartColors = colors.chartColors || ['#7DD5D8', '#F07B6B', '#F5C242', '#2E7D5E', '#8B7EE6'];
+      setChartData(
+        categories.slice(0, 5).map((c, i) => ({
+          category: c.category,
+          amount: c.total,
+          color: chartColors[i % chartColors.length],
+        }))
+      );
 
       // Calculate total debt (borrowed loans)
       const debt = loans
@@ -252,6 +265,18 @@ export default function DashboardScreen() {
             small
           />
         </View>
+
+        {/* Expense Breakdown */}
+        {chartData.length > 0 && (
+          <View style={s.section}>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>EXPENSE BREAKDOWN</Text>
+            </View>
+            <Card style={{ padding: 0, paddingVertical: Spacing.lg }}>
+              <DonutChart data={chartData} />
+            </Card>
+          </View>
+        )}
 
         {/* Quick Stats */}
         <View style={s.quickStats}>
@@ -461,12 +486,10 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   quickStatIcon: {
     width: 40,
     height: 40,
-    borderRadius: 4,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
-    borderWidth: 2,
-    borderColor: colors.border,
   },
   quickStatValue: {
     fontSize: 14,
@@ -587,8 +610,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 0,
-    borderWidth: 2,
+    borderRadius: Radius.full,
     gap: 4,
   },
   actionBtnTxt: {
@@ -604,9 +626,9 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     flex: 1,
   },
   accountDivider: {
-    width: 2,
+    width: 1,
     height: '80%',
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderLight,
     marginHorizontal: Spacing.md,
   },
   accountLabelRow: {
@@ -618,9 +640,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   accountDot: {
     width: 10,
     height: 10,
-    borderRadius: 0,
-    borderWidth: 2,
-    borderColor: colors.border,
+    borderRadius: Radius.full,
   },
   accountLabel: {
     fontSize: 11,

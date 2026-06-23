@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { formatCurrency } from '@/utils/helpers';
-import { Spacing, Fonts, NB } from '@/constants/theme';
+import { Spacing, Fonts, Radius, Shadows } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface SummaryCardProps {
@@ -22,54 +22,40 @@ export function SummaryCard({
   small,
 }: SummaryCardProps) {
   const colors = useThemeColors();
-  // Use solid color instead of gradient — first color of the gradient pair
-  const bgColor = gradient[0];
+  const accentColor = gradient[0];
 
   return (
-    <View style={{ flex: 1, position: 'relative' }}>
-      {/* Hard shadow */}
-      <View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            backgroundColor: colors.border,
-            borderRadius: 4,
-            top: NB.shadowOffset,
-            left: NB.shadowOffset,
-            right: -NB.shadowOffset,
-            bottom: -NB.shadowOffset,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.card,
-          small && styles.cardSmall,
-          {
-            backgroundColor: bgColor,
-            borderColor: colors.border,
-            borderWidth: colors.borderWidth,
-          },
-        ]}
-      >
-        <View style={[styles.header, small && styles.headerSmall]}>
-          <View style={[styles.iconContainer, small && styles.iconContainerSmall]}>
-            <MaterialIcons name={icon as any} size={small ? 14 : 20} color="#000000" />
-          </View>
-          <Text style={[styles.title, small && styles.titleSmall]}>{title}</Text>
+    <View
+      style={[
+        styles.card,
+        small && styles.cardSmall,
+        {
+          backgroundColor: colors.bgCard,
+          borderColor: colors.border,
+          borderWidth: colors.borderWidth,
+          borderLeftWidth: 4,
+          borderLeftColor: accentColor,
+        },
+        Shadows.sm,
+      ]}
+    >
+      <View style={[styles.header, small && styles.headerSmall]}>
+        <View style={[styles.iconContainer, small && styles.iconContainerSmall, { backgroundColor: `${accentColor}15` }]}>
+          <MaterialIcons name={icon as any} size={small ? 16 : 22} color={accentColor} />
         </View>
-        <Text style={[styles.amount, small && styles.amountSmall]}>
-          {formatCurrency(amount)}
-        </Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={[styles.title, small && styles.titleSmall, { color: colors.textSecondary }]}>{title}</Text>
       </View>
+      <Text style={[styles.amount, small && styles.amountSmall, { color: colors.textPrimary }]}>
+        {formatCurrency(amount)}
+      </Text>
+      {subtitle && <Text style={[styles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 4,
+    borderRadius: Radius.md,
     padding: Spacing.base,
     flex: 1,
     minHeight: 110,
@@ -90,42 +76,36 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconContainerSmall: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
+    width: 28,
+    height: 28,
   },
   title: {
     fontSize: 13,
     fontFamily: Fonts.body,
-    color: '#000000',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   titleSmall: {
-    fontSize: 11,
+    fontSize: 12,
   },
   amount: {
-    fontSize: 22,
-    fontFamily: Fonts.heading,
-    color: '#000000',
+    fontSize: 24,
+    fontFamily: Fonts.mono,
     marginTop: Spacing.sm,
   },
   amountSmall: {
-    fontSize: 16,
+    fontSize: 18,
     marginTop: 0,
   },
   subtitle: {
     fontSize: 12,
-    fontFamily: Fonts.body,
-    color: 'rgba(0,0,0,0.6)',
-    marginTop: 2,
+    fontFamily: Fonts.bodyRegular,
+    marginTop: 4,
   },
 });

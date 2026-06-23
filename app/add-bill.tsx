@@ -3,7 +3,7 @@ import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { addBill, updateBill, getBillById } from '@/db/queries';
 import { CATEGORIES } from '@/utils/helpers';
@@ -133,18 +133,18 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   content: { padding: Spacing.lg },
   inputGroup: { marginBottom: Spacing.lg },
   label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
-  input: { backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
-  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.billBg, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
+  input: { backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary, borderRadius: Radius.md },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, borderRadius: Radius.md },
   amountPrefix: { fontSize: 24, fontFamily: Fonts.body, color: colors.bill, marginRight: Spacing.md },
   amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
   helperText: { fontSize: 12, fontFamily: Fonts.bodyRegular, color: colors.textMuted, marginTop: 8 },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  chip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.bgElevated, borderRadius: Radius.full },
   chipActive: { backgroundColor: colors.bill },
   chipTxt: { fontSize: 13, fontFamily: Fonts.body, color: colors.textSecondary },
-  chipTxtActive: { color: '#000000', fontFamily: Fonts.heading },
+  chipTxtActive: { color: '#FFFFFF', fontFamily: Fonts.heading },
   saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
-  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
-  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
-  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
+  saveBtnShadow: { display: 'none' },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderRadius: Radius.full },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#FFFFFF', letterSpacing: 1 },
 });

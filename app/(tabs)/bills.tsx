@@ -9,7 +9,7 @@ import { FAB } from '@/components/ui/fab';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, Shadows, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid, deleteBill } from '@/db/queries';
 import { formatCurrency, getCurrentYearMonth, getYearMonth, daysUntilDue, isBillOverdue } from '@/utils/helpers';
@@ -45,8 +45,6 @@ export default function BillsScreen() {
       <MonthSelector yearMonth={yearMonth} onPrev={() => setMonthOffset(o => o - 1)} onNext={() => setMonthOffset(o => o + 1)} />
 
       <View style={s.summaryWrapper}>
-        {/* Hard shadow */}
-        <View style={s.summaryShadow} />
         <View style={s.summaryCard}>
           <Text style={s.summaryLbl}>TOTAL MONTHLY BILLS</Text>
           <Text style={s.summaryAmt}>{formatCurrency(totalUnpaid)}</Text>
@@ -101,13 +99,12 @@ export default function BillsScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.borderLight, marginBottom: Spacing.sm },
   title: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 1 },
   summaryWrapper: { position: 'relative', marginHorizontal: Spacing.lg, marginBottom: Spacing.md },
-  summaryShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border },
-  summaryCard: { backgroundColor: colors.bill, padding: Spacing.lg, alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border },
-  summaryLbl: { fontSize: 12, fontFamily: Fonts.heading, color: '#000000', marginBottom: 4, letterSpacing: 1 },
-  summaryAmt: { fontSize: 32, fontFamily: Fonts.heading, color: '#000000' },
+  summaryCard: { backgroundColor: colors.accent, padding: Spacing.lg, alignItems: 'center', borderRadius: Radius.lg, ...Shadows.sm },
+  summaryLbl: { fontSize: 12, fontFamily: Fonts.heading, color: '#FFFFFF', marginBottom: 4, letterSpacing: 1 },
+  summaryAmt: { fontSize: 32, fontFamily: Fonts.heading, color: '#FFFFFF' },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
   billCard: { marginBottom: Spacing.sm },

@@ -6,7 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useColorScheme } from 'nativewind';
 
 import { Card } from '@/components/ui/card';
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getSetting, setSetting } from '@/db/queries';
 
@@ -75,7 +75,7 @@ export default function SettingsScreen() {
                 style={[s.themeBtn, colorScheme === 'light' && s.themeBtnActive]} 
                 onPress={() => colorScheme !== 'light' && toggleColorScheme()}
               >
-                <MaterialIcons name="light-mode" size={16} color={colorScheme === 'light' ? '#000000' : colors.textMuted} />
+                <MaterialIcons name="light-mode" size={16} color={colorScheme === 'light' ? '#FFFFFF' : colors.textMuted} />
                 <Text style={[s.themeBtnTxt, colorScheme === 'light' && s.themeBtnTxtActive]}>Light</Text>
               </Pressable>
               <View style={s.themeDivider} />
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
                 style={[s.themeBtn, colorScheme === 'dark' && s.themeBtnActive]} 
                 onPress={() => colorScheme !== 'dark' && toggleColorScheme()}
               >
-                <MaterialIcons name="dark-mode" size={16} color={colorScheme === 'dark' ? '#000000' : colors.textMuted} />
+                <MaterialIcons name="dark-mode" size={16} color={colorScheme === 'dark' ? '#FFFFFF' : colors.textMuted} />
                 <Text style={[s.themeBtnTxt, colorScheme === 'dark' && s.themeBtnTxtActive]}>Dark</Text>
               </Pressable>
             </View>
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
           <View style={s.dangerShadow} />
           <Pressable style={s.dangerCard} onPress={handleReset}>
             <View style={s.dangerRow}>
-              <MaterialIcons name="delete-forever" size={24} color="#000000" />
+              <MaterialIcons name="delete-forever" size={24} color="#FFFFFF" />
               <Text style={s.dangerText}>ERASE ALL DATA</Text>
             </View>
           </Pressable>
@@ -129,7 +129,7 @@ export default function SettingsScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.borderLight, marginBottom: Spacing.sm },
   title: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 1 },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg },
@@ -138,22 +138,22 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { fontSize: 16, fontFamily: Fonts.body, color: colors.textPrimary },
   value: { fontSize: 16, fontFamily: Fonts.mono, color: colors.textMuted },
-  themeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
-  themeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
-  themeDivider: { width: 2, backgroundColor: colors.border },
+  themeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2 },
+  themeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full },
+  themeDivider: { width: 0 },
   themeBtnActive: { backgroundColor: colors.accent },
   themeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted },
-  themeBtnTxtActive: { color: '#000000' },
+  themeBtnTxtActive: { color: '#FFFFFF' },
   inputRow: { flexDirection: 'row', gap: Spacing.sm },
-  inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.md },
+  inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.md, borderRadius: Radius.md },
   inputPrefix: { color: colors.textMuted, marginRight: 8, fontFamily: Fonts.body, fontSize: 16 },
   input: { flex: 1, height: 44, color: colors.textPrimary, fontFamily: Fonts.mono, fontSize: 16 },
-  saveBtn: { backgroundColor: colors.accent, justifyContent: 'center', paddingHorizontal: Spacing.lg, borderWidth: 2, borderColor: colors.border },
-  saveBtnTxt: { color: '#000000', fontFamily: Fonts.heading, fontSize: 15, letterSpacing: 1 },
+  saveBtn: { backgroundColor: colors.accent, justifyContent: 'center', paddingHorizontal: Spacing.lg, borderRadius: Radius.md },
+  saveBtnTxt: { color: '#FFFFFF', fontFamily: Fonts.heading, fontSize: 15, letterSpacing: 1 },
   helpText: { fontSize: 13, fontFamily: Fonts.bodyRegular, color: colors.textMuted, marginTop: Spacing.md },
-  dangerShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
-  dangerCard: { backgroundColor: colors.danger, padding: Spacing.base, borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
+  dangerShadow: { display: 'none' },
+  dangerCard: { backgroundColor: colors.danger, padding: Spacing.base, borderRadius: Radius.md },
   dangerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
-  dangerText: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
+  dangerText: { fontSize: 16, fontFamily: Fonts.heading, color: '#FFFFFF', letterSpacing: 1 },
   version: { textAlign: 'center', fontFamily: Fonts.mono, color: colors.textMuted, marginTop: Spacing.xl * 2, marginBottom: Spacing.xl, fontSize: 12 },
 });

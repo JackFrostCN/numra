@@ -6,12 +6,18 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { Suspense } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useColorScheme } from 'nativewind';
-import { useFonts } from 'expo-font';
+import {
+  useFonts,
+  Nunito_400Regular,
+  Nunito_500Medium,
+  Nunito_600SemiBold,
+  Nunito_700Bold,
+} from '@expo-google-fonts/nunito';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 
 import { migrateDbIfNeeded } from '@/db/database';
-import { DarkPalette, LightPalette, NB } from '@/constants/theme';
+import { DarkPalette, LightPalette } from '@/constants/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,11 +63,10 @@ export default function RootLayout() {
   const theme = isDark ? NumraDarkTheme : NumraLightTheme;
 
   const [fontsLoaded] = useFonts({
-    'SpaceGrotesk-Bold': require('../assets/fonts/SpaceGrotesk-Bold.ttf'),
-    'SpaceGrotesk-Medium': require('../assets/fonts/SpaceGrotesk-Medium.ttf'),
-    'SpaceGrotesk-Regular': require('../assets/fonts/SpaceGrotesk-Regular.ttf'),
-    'JetBrainsMono-Medium': require('../assets/fonts/JetBrainsMono-Medium.ttf'),
-    'JetBrainsMono-Bold': require('../assets/fonts/JetBrainsMono-Bold.ttf'),
+    Nunito_400Regular,
+    Nunito_500Medium,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
   });
 
   if (fontsLoaded) {
@@ -99,7 +104,7 @@ export default function RootLayout() {
                 title: 'ADD TRANSACTION',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -110,7 +115,7 @@ export default function RootLayout() {
                 title: 'ADD LOAN',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -121,7 +126,7 @@ export default function RootLayout() {
                 title: 'ADD BILL',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -132,7 +137,7 @@ export default function RootLayout() {
                 title: 'WITHDRAW CASH',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -143,7 +148,7 @@ export default function RootLayout() {
                 title: 'DEPOSIT CASH',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
             <Stack.Screen
@@ -154,7 +159,7 @@ export default function RootLayout() {
                 title: 'LOAN DETAILS',
                 headerStyle,
                 headerTintColor: colors.textPrimary,
-                headerTitleStyle: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 16 },
+                headerTitleStyle: { fontFamily: 'Nunito_700Bold', fontSize: 16 },
               }}
             />
           </Stack>

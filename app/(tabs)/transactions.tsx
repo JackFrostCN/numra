@@ -9,7 +9,7 @@ import { DaySelector } from '@/components/ui/day-selector';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Spacing, Fonts, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction, getTransactionsByDay, getDailyTotals } from '@/db/queries';
 import { formatCurrency, formatDateShort, getYearMonth, getTodayISO } from '@/utils/helpers';
@@ -169,28 +169,28 @@ export default function TransactionsScreen() {
 
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: colors.borderWidth, borderBottomColor: colors.border, marginBottom: Spacing.sm },
+  header: { paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: colors.borderWidth, borderBottomColor: colors.borderLight, marginBottom: Spacing.sm },
   title: { fontSize: 22, fontFamily: Fonts.heading, color: colors.textPrimary },
-  viewModeRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
-  viewModeBtn: { paddingHorizontal: 12, paddingVertical: 6 },
-  viewModeDivider: { width: 2, backgroundColor: colors.border },
+  viewModeRow: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2 },
+  viewModeBtn: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: Radius.full },
+  viewModeDivider: { width: 0 },
   viewModeBtnActive: { backgroundColor: colors.accent },
   viewModeTxt: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted },
-  viewModeTxtActive: { color: '#000000' },
-  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, padding: Spacing.base, borderWidth: colors.borderWidth, borderColor: colors.border },
+  viewModeTxtActive: { color: '#FFFFFF' },
+  miniSummary: { flexDirection: 'row', marginHorizontal: Spacing.lg, backgroundColor: colors.bgCard, padding: Spacing.base, borderRadius: Radius.lg, shadowColor: colors.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   miniItem: { flex: 1, alignItems: 'center' },
-  divider: { width: 2, backgroundColor: colors.border },
+  divider: { width: 1, backgroundColor: colors.borderLight },
   miniAmt: { fontSize: 16, fontFamily: Fonts.mono },
   miniLbl: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 0.5 },
   filterRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.sm, gap: Spacing.sm },
-  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  filterTab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, backgroundColor: colors.bgElevated, borderRadius: Radius.full },
   filterAllActive: { backgroundColor: colors.info },
   filterIncomeActive: { backgroundColor: colors.income },
   filterExpenseActive: { backgroundColor: colors.expense },
-  filterTxt: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textMuted },
-  filterAllTxtActive: { color: '#000000' },
-  filterIncomeTxtActive: { color: '#000000' },
-  filterExpenseTxtActive: { color: '#000000' },
+  filterTxt: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textSecondary },
+  filterAllTxtActive: { color: '#FFFFFF' },
+  filterIncomeTxtActive: { color: '#FFFFFF' },
+  filterExpenseTxtActive: { color: '#FFFFFF' },
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
   dateGroup: { marginBottom: Spacing.md },

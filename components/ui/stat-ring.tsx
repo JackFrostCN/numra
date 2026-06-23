@@ -54,7 +54,7 @@ export function StatRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={colors.bgElevated}
+          stroke={colors.border}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -66,7 +66,7 @@ export function StatRing({
           stroke={ringColor}
           strokeWidth={strokeWidth}
           fill="none"
-          strokeLinecap="butt"
+          strokeLinecap="round"
           strokeDasharray={circumference}
           animatedProps={animatedProps}
           rotation="-90"
@@ -75,7 +75,7 @@ export function StatRing({
       </Svg>
       <View style={[styles.labelContainer, { width: size, height: size }]}>
         <Text style={[styles.value, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{value}</Text>
-        <Text style={[styles.label, { color: colors.textMuted, fontFamily: Fonts.body }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary, fontFamily: Fonts.body }]}>{label}</Text>
       </View>
     </View>
   );
@@ -94,8 +94,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   value: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
   },
   label: {
     fontSize: 11,

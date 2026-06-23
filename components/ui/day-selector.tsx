@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Spacing, Fonts } from '@/constants/theme';
+import { Spacing, Fonts, Radius } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { formatDateShort } from '@/utils/helpers';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -22,18 +22,20 @@ export function DaySelector({ dateString, onPrev, onNext, onChange }: DaySelecto
   return (
     <View style={styles.container}>
       <Pressable 
-        style={[styles.btn, {
-          backgroundColor: colors.bgCard,
-          borderColor: colors.border,
-          borderWidth: 2,
-        }]} 
+        style={({ pressed }) => [
+          styles.btn, 
+          { backgroundColor: colors.bgElevated, opacity: pressed ? 0.7 : 1 }
+        ]} 
         onPress={onPrev}
       >
-        <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
+        <MaterialIcons name="chevron-left" size={24} color={colors.textSecondary} />
       </Pressable>
       
       <Pressable 
-        style={styles.center}
+        style={({ pressed }) => [
+          styles.center,
+          pressed && onChange && { opacity: 0.7 }
+        ]}
         onPress={() => onChange && setDatePickerVisibility(true)}
         disabled={!onChange}
       >
@@ -42,14 +44,13 @@ export function DaySelector({ dateString, onPrev, onNext, onChange }: DaySelecto
       </Pressable>
       
       <Pressable 
-        style={[styles.btn, {
-          backgroundColor: colors.bgCard,
-          borderColor: colors.border,
-          borderWidth: 2,
-        }]} 
+        style={({ pressed }) => [
+          styles.btn, 
+          { backgroundColor: colors.bgElevated, opacity: pressed ? 0.7 : 1 }
+        ]} 
         onPress={onNext}
       >
-        <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
+        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
       </Pressable>
 
       <DateTimePickerModal
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   btn: {
     width: 40,
     height: 40,
-    borderRadius: 0,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -89,15 +90,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: 0,
   },
   icon: {
     marginRight: 6,
   },
   text: {
     fontSize: 16,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
 });

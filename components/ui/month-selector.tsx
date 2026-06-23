@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Spacing, Fonts } from '@/constants/theme';
+import { Spacing, Fonts, Radius } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getMonthDisplayName } from '@/utils/helpers';
 
@@ -18,14 +18,13 @@ export function MonthSelector({ yearMonth, onPrev, onNext }: MonthSelectorProps)
   return (
     <View style={styles.container}>
       <Pressable 
-        style={[styles.btn, {
-          backgroundColor: colors.bgCard,
-          borderColor: colors.border,
-          borderWidth: 2,
-        }]} 
+        style={({ pressed }) => [
+          styles.btn, 
+          { backgroundColor: colors.bgElevated, opacity: pressed ? 0.7 : 1 }
+        ]} 
         onPress={onPrev}
       >
-        <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
+        <MaterialIcons name="chevron-left" size={24} color={colors.textSecondary} />
       </Pressable>
       
       <View style={styles.center}>
@@ -34,14 +33,13 @@ export function MonthSelector({ yearMonth, onPrev, onNext }: MonthSelectorProps)
       </View>
       
       <Pressable 
-        style={[styles.btn, {
-          backgroundColor: colors.bgCard,
-          borderColor: colors.border,
-          borderWidth: 2,
-        }]} 
+        style={({ pressed }) => [
+          styles.btn, 
+          { backgroundColor: colors.bgElevated, opacity: pressed ? 0.7 : 1 }
+        ]} 
         onPress={onNext}
       >
-        <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
+        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
       </Pressable>
     </View>
   );
@@ -59,7 +57,7 @@ const styles = StyleSheet.create({
   btn: {
     width: 40,
     height: 40,
-    borderRadius: 0,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -72,8 +70,5 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
 });

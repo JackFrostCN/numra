@@ -5,7 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, Shadows, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getLoanById, getLoanPayments } from '@/db/queries';
 import { formatCurrency, formatDateShort } from '@/utils/helpers';
@@ -75,7 +75,7 @@ export default function LoanDetailsScreen() {
 const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
-  headerCard: { backgroundColor: colors.bgCard, padding: Spacing.lg, borderWidth: colors.borderWidth, borderColor: colors.border, marginBottom: Spacing.lg },
+  headerCard: { backgroundColor: colors.bgCard, padding: Spacing.lg, borderRadius: Radius.lg, marginBottom: Spacing.lg, ...Shadows.sm },
   personName: { fontSize: 24, fontFamily: Fonts.heading, color: colors.textPrimary },
   loanType: { fontSize: 12, fontFamily: Fonts.heading, color: colors.textMuted, marginTop: 4, letterSpacing: 1 },
   totalAmt: { fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary, marginVertical: Spacing.md },
@@ -84,7 +84,7 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   progressLbl: { fontSize: 11, fontFamily: Fonts.heading, color: colors.textSecondary, letterSpacing: 0.5 },
   sectionTitle: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
   emptyTxt: { fontSize: 14, fontFamily: Fonts.body, color: colors.textMuted },
-  historyContainer: { backgroundColor: colors.bgCard, borderWidth: 2, borderColor: colors.border },
+  historyContainer: { backgroundColor: colors.bgCard, borderRadius: Radius.lg, overflow: 'hidden', ...Shadows.sm },
   historyRow: { flexDirection: 'row', justifyContent: 'space-between', padding: Spacing.base, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
   historyDate: { fontSize: 14, fontFamily: Fonts.body, color: colors.textPrimary },
   historyAmt: { fontSize: 16, fontFamily: Fonts.mono, color: colors.textPrimary },

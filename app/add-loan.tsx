@@ -5,7 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { Spacing, Fonts, NB, type PaletteType } from '@/constants/theme';
+import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { addLoan } from '@/db/queries';
 import { getTodayISO, formatDateShort } from '@/utils/helpers';
@@ -143,27 +143,27 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: Spacing.lg },
   typeToggleContainer: { marginBottom: Spacing.xl },
-  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border },
-  typeBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  typeDivider: { width: colors.borderWidth, backgroundColor: colors.border },
+  typeToggleRow: { flexDirection: 'row', backgroundColor: colors.bgElevated, borderRadius: Radius.full, padding: 2 },
+  typeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.full },
+  typeDivider: { width: 0 },
   typeBtnBorrowedActive: { backgroundColor: colors.expense },
   typeBtnLentActive: { backgroundColor: colors.income },
   typeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted, letterSpacing: 1 },
-  typeBtnTxtActive: { color: '#000000' },
+  typeBtnTxtActive: { color: '#FFFFFF' },
   inputGroup: { marginBottom: Spacing.lg },
   label: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textSecondary, marginBottom: Spacing.sm, letterSpacing: 1 },
-  input: { backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary },
-  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base },
-  amountInputRowBorrowed: { backgroundColor: colors.expenseBg },
-  amountInputRowLent: { backgroundColor: colors.incomeBg },
+  input: { backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, fontSize: 15, fontFamily: Fonts.body, color: colors.textPrimary, borderRadius: Radius.md },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, borderRadius: Radius.md },
+  amountInputRowBorrowed: { backgroundColor: colors.bgCard },
+  amountInputRowLent: { backgroundColor: colors.bgCard },
   amountPrefix: { fontSize: 24, fontFamily: Fonts.body, marginRight: Spacing.md },
   amountPrefixBorrowed: { color: colors.expense },
   amountPrefixLent: { color: colors.income },
   amountInput: { flex: 1, height: 64, fontSize: 36, fontFamily: Fonts.mono, color: colors.textPrimary },
-  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: 2, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48 },
+  dateBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.base, height: 48, borderRadius: Radius.md },
   dateTxt: { fontSize: 15, fontFamily: Fonts.heading, color: colors.textPrimary, letterSpacing: 0.5 },
   saveBtnContainer: { position: 'absolute', bottom: Spacing.xl, left: Spacing.lg, right: Spacing.lg },
-  saveBtnShadow: { position: 'absolute', top: NB.shadowOffset, left: NB.shadowOffset, right: -NB.shadowOffset, bottom: -NB.shadowOffset, backgroundColor: colors.border, borderRadius: 4 },
-  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderWidth: colors.borderWidth, borderColor: colors.border, borderRadius: 4 },
-  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#000000', letterSpacing: 1 },
+  saveBtnShadow: { display: 'none' },
+  saveBtn: { height: 56, justifyContent: 'center', alignItems: 'center', borderRadius: Radius.full },
+  saveBtnTxt: { fontSize: 16, fontFamily: Fonts.heading, color: '#FFFFFF', letterSpacing: 1 },
 });

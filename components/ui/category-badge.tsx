@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { getCategoryColor, getCategoryIcon } from '@/utils/helpers';
-import { Spacing, Fonts } from '@/constants/theme';
+import { Spacing, Fonts, Radius } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface CategoryBadgeProps {
@@ -10,7 +10,6 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, size = 'md' }: CategoryBadgeProps) {
-  const colors = useThemeColors();
   const color = getCategoryColor(category);
   const iconName = getCategoryIcon(category);
   const isSmall = size === 'sm';
@@ -20,18 +19,16 @@ export function CategoryBadge({ category, size = 'md' }: CategoryBadgeProps) {
       style={[
         styles.badge,
         {
-          backgroundColor: `${color}30`,
-          borderColor: colors.border,
-          borderWidth: 2,
-          width: isSmall ? 36 : 44,
-          height: isSmall ? 36 : 44,
-          borderRadius: 4,
+          backgroundColor: `${color}25`,
+          width: isSmall ? 40 : 48,
+          height: isSmall ? 40 : 48,
+          borderRadius: Radius.full,
         },
       ]}
     >
       <MaterialIcons
         name={iconName as any}
-        size={isSmall ? 18 : 22}
+        size={isSmall ? 20 : 24}
         color={color}
       />
     </View>
@@ -43,11 +40,10 @@ interface CategoryPillProps {
 }
 
 export function CategoryPill({ category }: CategoryPillProps) {
-  const colors = useThemeColors();
   const color = getCategoryColor(category);
 
   return (
-    <View style={[styles.pill, { backgroundColor: `${color}30`, borderColor: colors.border, borderWidth: 2 }]}>
+    <View style={[styles.pill, { backgroundColor: `${color}25` }]}>
       <Text style={[styles.pillText, { color, fontFamily: Fonts.body }]}>{category}</Text>
     </View>
   );
@@ -59,12 +55,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pill: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: 0,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
   },
   pillText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
   },
 });
