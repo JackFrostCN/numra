@@ -2,35 +2,34 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { CategoryBadge } from '@/components/ui/category-badge';
+import { DonutChart, type ChartData } from '@/components/ui/donut-chart';
+import { FAB } from '@/components/ui/fab';
 import { StatRing } from '@/components/ui/stat-ring';
 import { SummaryCard } from '@/components/ui/summary-card';
-import { FAB } from '@/components/ui/fab';
-import { DonutChart, type ChartData } from '@/components/ui/donut-chart';
-import { Spacing, Fonts, Radius, Shadows, type PaletteType } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/useThemeColors';
+import { Fonts, Radius, Spacing, type PaletteType } from '@/constants/theme';
 import {
   getActiveLoans,
+  getBankSummary,
   getBillPaymentsForMonth,
   getBills,
-  getMonthlyTotals,
+  getCategoryTotals,
   getDailyTotals,
+  getMonthlyTotals,
   getRecentTransactions,
   getSetting,
-  getBankSummary,
-  getCategoryTotals,
 } from '@/db/queries';
-import type { Bill, Loan, MonthlyTotals, Transaction, BankSummary } from '@/types';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import type { BankSummary, Bill, Loan, MonthlyTotals, Transaction } from '@/types';
 import {
   daysUntilDue,
   formatCurrency,
   formatDateShort,
   getCurrentYearMonth,
-  getTodayISO,
-  getMonthDisplayName,
+  getTodayISO
 } from '@/utils/helpers';
 
 function getGreeting(): string {
@@ -38,7 +37,7 @@ function getGreeting(): string {
   if (hour >= 5 && hour < 12) return 'Good Morning';
   if (hour >= 12 && hour < 17) return 'Good Afternoon';
   if (hour >= 17 && hour < 21) return 'Good Evening';
-  return 'Hello Night Owl, tracking some finance shit?';
+  return 'Hello Night Owl, Tracking Some Finance Shit?';
 }
 
 export default function DashboardScreen() {
@@ -200,10 +199,10 @@ export default function DashboardScreen() {
                     {hideBalances ? '••••' : formatCurrency(bankSummary.handBalance)}
                   </Text>
                   <Pressable onPress={() => setHideBalances(!hideBalances)} style={{ padding: 4, marginTop: -4 }}>
-                    <MaterialIcons 
-                      name={hideBalances ? 'visibility-off' : 'visibility'} 
-                      size={20} 
-                      color={colors.textSecondary} 
+                    <MaterialIcons
+                      name={hideBalances ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color={colors.textSecondary}
                     />
                   </Pressable>
                 </View>
