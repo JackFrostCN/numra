@@ -1,6 +1,5 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Radius, Shadows } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface FABProps {
@@ -8,7 +7,7 @@ interface FABProps {
   icon?: string;
 }
 
-export function FAB({ onPress, icon = 'add' }: FABProps) {
+export function FAB({ onPress, icon = 'add-circle' }: FABProps) {
   const colors = useThemeColors();
 
   return (
@@ -18,15 +17,12 @@ export function FAB({ onPress, icon = 'add' }: FABProps) {
         style={({ pressed }) => [
           styles.fab,
           {
-            backgroundColor: colors.accent,
-            borderColor: colors.border,
-            borderWidth: colors.borderWidth,
             opacity: pressed ? 0.8 : 1,
             transform: [{ scale: pressed ? 0.95 : 1 }],
           },
         ]}
       >
-        <MaterialIcons name={icon as any} size={28} color="#FFFFFF" />
+        <MaterialIcons name={icon as any} size={64} color={colors.accent} />
       </Pressable>
     </View>
   );
@@ -38,12 +34,15 @@ const styles = StyleSheet.create({
     bottom: 24,
     right: 20,
     zIndex: 100,
-    ...Shadows.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
   fab: {
-    width: 60,
-    height: 60,
-    borderRadius: Radius.full,
+    width: 64,
+    height: 64,
     alignItems: 'center',
     justifyContent: 'center',
   },
