@@ -9,6 +9,7 @@ import { DaySelector } from '@/components/ui/day-selector';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getTransactionsByMonth, getMonthlyTotals, deleteTransaction, getTransactionsByDay, getDailyTotals } from '@/db/queries';
@@ -62,11 +63,10 @@ export default function TransactionsScreen() {
     setSelectedDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
   };
 
+  const [txnToDelete, setTxnToDelete] = useState<number | null>(null);
+
   const handleDelete = (id: number) => {
-    Alert.alert('Delete Transaction', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteTransaction(db, id); loadData(); } },
-    ]);
+    setTxnToDelete(id);
   };
 
   const filtered = filter === 'all' ? transactions : transactions.filter((t) => t.type === filter);
@@ -163,6 +163,22 @@ export default function TransactionsScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
       <FAB onPress={() => router.push('/add-transaction')} />
+
+      <ConfirmModal
+        visible={txnToDelete !== null}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction?"
+        confirmText="Delete"
+        isDestructive={true}
+        onCancel={() => setTxnToDelete(null)}
+        onConfirm={async () => {
+          if (txnToDelete !== null) {
+            await deleteTransaction(db, txnToDelete);
+            setTxnToDelete(null);
+            loadData();
+          }
+        }}
+      />
     </View>
   );
 }

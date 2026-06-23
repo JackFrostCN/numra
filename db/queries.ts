@@ -195,41 +195,19 @@ export async function addLoan(
     notes?: string;
   }
 ) {
-  let loanId = 0;
-  await db.withTransactionAsync(async () => {
-    const result = await db.runAsync(
-      `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, source, due_date, notes) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      data.type,
-      data.person_name,
-      data.total_amount,
-      data.total_amount, // remaining = total at start
-      data.date,
-      data.source,
-      data.due_date ?? null,
-      data.notes ?? null
-    );
-    loanId = result.lastInsertRowId;
-
-    // Automatically log this as a transaction
-    // If I borrow money, it's Income to my bank/hand.
-    // If I lend money, it's Expense from my bank/hand.
-    const txnType = data.type === 'borrowed' ? 'income' : 'expense';
-    const categoryName = data.type === 'borrowed' ? 'Loan Borrowed' : 'Loan Lent';
-    
-    await db.runAsync(
-      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      txnType,
-      data.total_amount,
-      categoryName,
-      data.type === 'borrowed' ? `Borrowed from ${data.person_name}` : `Lent to ${data.person_name}`,
-      data.date,
-      data.source,
-      'loan',
-      loanId
-    );
-  });
-  return loanId;
+  const result = await db.runAsync(
+    `INSERT INTO loans (type, person_name, total_amount, remaining_amount, date, source, due_date, notes) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    data.type,
+    data.person_name,
+    data.total_amount,
+    data.total_amount, // remaining = total at start
+    data.date,
+    data.source,
+    data.due_date ?? null,
+    data.notes ?? null
+  );
+  return result.lastInsertRowId;
 }
 
 export async function getActiveLoans(
@@ -270,7 +248,7 @@ export async function recordLoanPayment(
     );
     if (!loan) return;
 
-    const result = await db.runAsync(
+    await db.runAsync(
       'INSERT INTO loan_payments (loan_id, amount, date, source, note) VALUES (?, ?, ?, ?, ?)',
       loanId,
       amount,
@@ -278,28 +256,11 @@ export async function recordLoanPayment(
       source,
       note ?? null
     );
-    const paymentId = result.lastInsertRowId;
 
     await db.runAsync(
       'UPDATE loans SET remaining_amount = MAX(0, remaining_amount - ?) WHERE id = ?',
       amount,
       loanId
-    );
-
-    // If I pay back a borrowed loan -> Expense.
-    // If someone pays back a loan I lent them -> Income.
-    const txnType = loan.type === 'borrowed' ? 'expense' : 'income';
-    
-    await db.runAsync(
-      'INSERT INTO transactions (type, amount, category, description, date, source, linked_type, linked_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      txnType,
-      amount,
-      'Debt Repayment',
-      loan.type === 'borrowed' ? `Paid back ${loan.person_name}` : `Received from ${loan.person_name}`,
-      date,
-      source,
-      'loan_payment',
-      paymentId
     );
 
     // Auto-complete if remaining is 0
@@ -330,22 +291,44 @@ export async function markLoanComplete(db: SQLiteDatabase, id: number) {
 }
 
 export async function deleteLoan(db: SQLiteDatabase, id: number) {
+  // loan_payments will be deleted via ON DELETE CASCADE in sqlite
+  await db.runAsync('DELETE FROM loans WHERE id = ?', id);
+}
+
+export async function updateLoan(
+  db: SQLiteDatabase,
+  id: number,
+  data: {
+    type: 'lent' | 'borrowed';
+    person_name: string;
+    total_amount: number;
+    date: string;
+    due_date?: string;
+  }
+) {
   await db.withTransactionAsync(async () => {
-    // Get all loan payments associated with this loan
-    const payments = await db.getAllAsync<{id: number}>('SELECT id FROM loan_payments WHERE loan_id = ?', id);
-    const paymentIds = payments.map(p => p.id);
-    
-    // Delete transactions related to loan payments
-    if (paymentIds.length > 0) {
-      const placeholders = paymentIds.map(() => '?').join(',');
-      await db.runAsync(`DELETE FROM transactions WHERE linked_type = 'loan_payment' AND linked_id IN (${placeholders})`, ...paymentIds);
-    }
-    
-    // Delete transaction related to the initial loan creation
-    await db.runAsync("DELETE FROM transactions WHERE linked_type = 'loan' AND linked_id = ?", id);
-    
-    // Delete the loan (loan_payments will be deleted via ON DELETE CASCADE in sqlite)
-    await db.runAsync('DELETE FROM loans WHERE id = ?', id);
+    // We need to re-calculate remaining_amount based on new total and existing payments
+    const payments = await db.getAllAsync<{ amount: number }>(
+      'SELECT amount FROM loan_payments WHERE loan_id = ?',
+      id
+    );
+    const paidSoFar = payments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = Math.max(0, data.total_amount - paidSoFar);
+    const isCompleted = remaining === 0 ? 1 : 0;
+
+    await db.runAsync(
+      `UPDATE loans 
+       SET type = ?, person_name = ?, total_amount = ?, remaining_amount = ?, date = ?, due_date = ?, is_completed = ?
+       WHERE id = ?`,
+      data.type,
+      data.person_name,
+      data.total_amount,
+      remaining,
+      data.date,
+      data.due_date ?? null,
+      isCompleted,
+      id
+    );
   });
 }
 

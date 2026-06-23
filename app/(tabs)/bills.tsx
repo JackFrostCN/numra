@@ -9,6 +9,7 @@ import { FAB } from '@/components/ui/fab';
 import { MonthSelector } from '@/components/ui/month-selector';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Spacing, Fonts, Radius, Shadows, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getBills, getBillPaymentsForMonth, markBillPaid, markBillUnpaid, deleteBill } from '@/db/queries';
@@ -21,6 +22,7 @@ export default function BillsScreen() {
   const colors = useThemeColors();
   const [monthOffset, setMonthOffset] = useState(0);
   const [bills, setBills] = useState<(Bill & { is_paid: boolean })[]>([]);
+  const [billToDelete, setBillToDelete] = useState<Bill | null>(null);
   
   const yearMonth = getYearMonth(monthOffset);
   const isCurrentMonth = monthOffset === 0;
@@ -82,15 +84,7 @@ export default function BillsScreen() {
                 key={bill.id} 
                 style={[s.billCard, bill.is_paid && s.billCardPaid]}
                 onPress={() => router.push({ pathname: '/add-bill', params: { id: bill.id } })}
-                onLongPress={() => {
-                  Alert.alert('Delete Bill', `Are you sure you want to delete ${bill.name}?`, [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: async () => {
-                      await deleteBill(db, bill.id);
-                      loadData();
-                    }}
-                  ]);
-                }}
+                onLongPress={() => setBillToDelete(bill)}
               >
                 <View style={s.billRow}>
                   <CategoryBadge category={bill.category} />
@@ -124,6 +118,22 @@ export default function BillsScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
       <FAB onPress={() => router.push('/add-bill')} />
+
+      <ConfirmModal
+        visible={!!billToDelete}
+        title="Delete Bill"
+        message={`Are you sure you want to delete ${billToDelete?.name}? This cannot be undone.`}
+        confirmText="Delete"
+        isDestructive={true}
+        onCancel={() => setBillToDelete(null)}
+        onConfirm={async () => {
+          if (billToDelete) {
+            await deleteBill(db, billToDelete.id);
+            setBillToDelete(null);
+            loadData();
+          }
+        }}
+      />
     </View>
   );
 }

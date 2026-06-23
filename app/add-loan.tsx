@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -7,7 +7,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { addLoan } from '@/db/queries';
+import { addLoan, getLoanById, updateLoan } from '@/db/queries';
 import { getTodayISO, formatDateShort } from '@/utils/helpers';
 
 export default function AddLoanModal() {
@@ -15,7 +15,7 @@ export default function AddLoanModal() {
   const router = useRouter();
   const colors = useThemeColors();
 
-  const { initialType } = useLocalSearchParams<{ initialType: 'lent' | 'borrowed' }>();
+  const { initialType, id } = useLocalSearchParams<{ initialType: 'lent' | 'borrowed', id?: string }>();
   const [type, setType] = useState<'lent' | 'borrowed'>(initialType || 'borrowed');
   const [personName, setPersonName] = useState('');
   const [amount, setAmount] = useState('');
@@ -24,20 +24,46 @@ export default function AddLoanModal() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isDueDatePickerVisible, setDueDatePickerVisibility] = useState(false);
 
+  const isEditing = !!id;
+
+  const loadData = useCallback(async () => {
+    if (!id) return;
+    const loanData = await getLoanById(db, parseInt(id, 10));
+    if (loanData) {
+      setType(loanData.type);
+      setPersonName(loanData.person_name);
+      setAmount(loanData.total_amount.toString());
+      setDate(loanData.date);
+      setDueDate(loanData.due_date);
+    }
+  }, [id, db]);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !personName) {
       alert('Please enter valid details');
       return;
     }
 
-    await addLoan(db, {
-      type,
-      person_name: personName,
-      total_amount: Number(amount),
-      date,
-      due_date: dueDate || undefined,
-      source: 'bank',
-    });
+    if (isEditing) {
+      await updateLoan(db, parseInt(id, 10), {
+        type,
+        person_name: personName,
+        total_amount: Number(amount),
+        date,
+        due_date: dueDate || undefined,
+      });
+    } else {
+      await addLoan(db, {
+        type,
+        person_name: personName,
+        total_amount: Number(amount),
+        date,
+        due_date: dueDate || undefined,
+        source: 'bank',
+      });
+    }
     router.back();
   };
 
