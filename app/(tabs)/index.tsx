@@ -366,11 +366,7 @@ export default function DashboardScreen() {
             </Card>
           ) : (
             recentTransactions.map((txn) => (
-              <Card 
-                key={txn.id} 
-                style={s.txnItem}
-                onPress={() => router.push({ pathname: '/add-transaction', params: { id: txn.id } })}
-              >
+              <Card key={txn.id} style={s.txnItem}>
                 <View style={s.txnRow}>
                   <CategoryBadge category={txn.category} size="sm" />
                   <View style={s.txnInfo}>
