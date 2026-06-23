@@ -16,6 +16,7 @@ import {
   getBillPaymentsForMonth,
   getBills,
   getMonthlyTotals,
+  getDailyTotals,
   getRecentTransactions,
   getSetting,
   getBankSummary,
@@ -26,6 +27,7 @@ import {
   formatCurrency,
   formatDateShort,
   getCurrentYearMonth,
+  getTodayISO,
   getMonthDisplayName,
 } from '@/utils/helpers';
 
@@ -43,6 +45,7 @@ export default function DashboardScreen() {
   const colors = useThemeColors();
 
   const [totals, setTotals] = useState<MonthlyTotals>({ income: 0, expenses: 0, balance: 0 });
+  const [dailyTotals, setDailyTotals] = useState<MonthlyTotals>({ income: 0, expenses: 0, balance: 0 });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [totalBillsCount, setTotalBillsCount] = useState(0);
@@ -70,8 +73,10 @@ export default function DashboardScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const [monthTotals, recent, bills, billPayments, loans, budgetSetting, summary] = await Promise.all([
+      const todayISO = getTodayISO();
+      const [monthTotals, dayTotals, recent, bills, billPayments, loans, budgetSetting, summary] = await Promise.all([
         getMonthlyTotals(db, currentMonth),
+        getDailyTotals(db, todayISO),
         getRecentTransactions(db, 5),
         getBills(db),
         getBillPaymentsForMonth(db, currentMonth),
@@ -81,6 +86,7 @@ export default function DashboardScreen() {
       ]);
 
       setTotals(monthTotals);
+      setDailyTotals(dayTotals);
       setRecentTransactions(recent);
       setActiveLoansCount(loans.length);
       setBudget(Number(budgetSetting) || 0);
@@ -231,16 +237,16 @@ export default function DashboardScreen() {
         {/* Summary Cards */}
         <View style={s.summaryRow}>
           <SummaryCard
-            title="Income"
-            amount={totals.income}
+            title="Today's Income"
+            amount={dailyTotals.income}
             icon="trending-up"
             gradient={colors.gradientIncome}
             small
           />
           <View style={{ width: Spacing.md }} />
           <SummaryCard
-            title="Expenses"
-            amount={totals.expenses}
+            title="Today's Expenses"
+            amount={dailyTotals.expenses}
             icon="trending-down"
             gradient={colors.gradientExpense}
             small
