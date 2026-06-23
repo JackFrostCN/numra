@@ -279,31 +279,35 @@ export default function DashboardScreen() {
         )}
 
         {/* Quick Stats */}
-        <View style={s.quickStats}>
-          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
+        <Card style={s.quickStatsCard}>
+          <Pressable style={s.quickStatCol} onPress={() => router.push('/(tabs)/loans')}>
             <View style={[s.quickStatIcon, { backgroundColor: colors.loanBg }]}>
-              <MaterialIcons name="account-balance" size={20} color={colors.loan} />
+              <MaterialIcons name="account-balance" size={16} color={colors.loan} />
             </View>
             <Text style={s.quickStatValue}>{activeLoansCount}</Text>
             <Text style={s.quickStatLabel}>ACTIVE LOANS</Text>
-          </Card>
+          </Pressable>
 
-          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/loans')}>
+          <View style={s.quickStatDivider} />
+
+          <Pressable style={s.quickStatCol} onPress={() => router.push('/(tabs)/loans')}>
             <View style={[s.quickStatIcon, { backgroundColor: colors.expenseBg }]}>
-              <MaterialIcons name="money-off" size={20} color={colors.expense} />
+              <MaterialIcons name="money-off" size={16} color={colors.expense} />
             </View>
             <Text style={s.quickStatValue}>{formatCurrency(totalDebt)}</Text>
             <Text style={s.quickStatLabel}>TOTAL DEBT</Text>
-          </Card>
+          </Pressable>
 
-          <Card style={s.quickStatCard} onPress={() => router.push('/(tabs)/bills')}>
+          <View style={s.quickStatDivider} />
+
+          <Pressable style={s.quickStatCol} onPress={() => router.push('/(tabs)/bills')}>
             <View style={[s.quickStatIcon, { backgroundColor: colors.billBg }]}>
-              <MaterialIcons name="receipt-long" size={20} color={colors.bill} />
+              <MaterialIcons name="receipt-long" size={16} color={colors.bill} />
             </View>
             <Text style={s.quickStatValue}>{totalBillsCount}</Text>
             <Text style={s.quickStatLabel}>TOTAL BILLS</Text>
-          </Card>
-        </View>
+          </Pressable>
+        </Card>
 
         {/* Upcoming Bills */}
         {upcomingBills.length > 0 && (
@@ -472,34 +476,38 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
     fontFamily: Fonts.body,
     color: colors.textMuted,
   },
-  quickStats: {
+  quickStatsCard: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    alignItems: 'center',
     marginBottom: Spacing.base,
+    paddingVertical: Spacing.md,
   },
-  quickStatCard: {
+  quickStatCol: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    marginBottom: 0,
+  },
+  quickStatDivider: {
+    width: 1,
+    height: '60%',
+    backgroundColor: colors.borderLight,
   },
   quickStatIcon: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: 6,
   },
   quickStatValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: Fonts.heading,
     color: colors.textPrimary,
     marginBottom: 2,
     textAlign: 'center',
   },
   quickStatLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: Fonts.heading,
     color: colors.textMuted,
     textAlign: 'center',
