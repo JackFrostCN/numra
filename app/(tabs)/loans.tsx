@@ -105,7 +105,7 @@ export default function LoansScreen() {
         )}
         <View style={{ height: 100 }} />
       </ScrollView>
-      <FAB onPress={() => router.push('/add-loan')} />
+      <FAB onPress={() => router.push({ pathname: '/add-loan', params: { initialType: tab } })} />
     </View>
   );
 }

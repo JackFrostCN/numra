@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -15,7 +15,8 @@ export default function AddLoanModal() {
   const router = useRouter();
   const colors = useThemeColors();
 
-  const [type, setType] = useState<'lent' | 'borrowed'>('borrowed');
+  const { initialType } = useLocalSearchParams<{ initialType: 'lent' | 'borrowed' }>();
+  const [type, setType] = useState<'lent' | 'borrowed'>(initialType || 'borrowed');
   const [personName, setPersonName] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(getTodayISO());
