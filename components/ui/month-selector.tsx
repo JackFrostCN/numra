@@ -29,7 +29,7 @@ export function MonthSelector({ yearMonth, onPrev, onNext }: MonthSelectorProps)
       
       <View style={styles.center}>
         <MaterialIcons name="calendar-today" size={16} color={colors.textMuted} style={styles.icon} />
-        <Text style={[styles.text, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{display}</Text>
+        <Text style={[styles.text, { color: colors.textPrimary, fontFamily: Fonts.heading }]} numberOfLines={1} adjustsFontSizeToFit>{display}</Text>
       </View>
       
       <Pressable 

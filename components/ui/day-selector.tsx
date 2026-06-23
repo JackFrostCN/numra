@@ -39,8 +39,10 @@ export function DaySelector({ dateString, onPrev, onNext, onChange }: DaySelecto
         onPress={() => onChange && setDatePickerVisibility(true)}
         disabled={!onChange}
       >
-        <MaterialIcons name="today" size={16} color={colors.textMuted} style={styles.icon} />
-        <Text style={[styles.text, { color: colors.textPrimary, fontFamily: Fonts.heading }]}>{display}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialIcons name="today" size={16} color={colors.textMuted} style={styles.icon} />
+          <Text style={[styles.text, { color: colors.textPrimary, fontFamily: Fonts.heading }]} numberOfLines={1} adjustsFontSizeToFit>{display}</Text>
+        </View>
       </Pressable>
       
       <Pressable 
