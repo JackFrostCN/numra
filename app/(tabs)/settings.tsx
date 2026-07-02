@@ -1,17 +1,17 @@
-import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Pressable } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useFocusEffect } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useColorScheme } from 'nativewind';
 import * as Haptics from 'expo-haptics';
+import { useFocusEffect } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useColorScheme } from 'nativewind';
+import { useCallback, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/useThemeColors';
-import { useHaptics } from '@/hooks/useHaptics';
+import { Fonts, Radius, Spacing, type PaletteType } from '@/constants/theme';
 import { getSetting, setSetting } from '@/db/queries';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
@@ -71,8 +71,8 @@ export default function SettingsScreen() {
   const handleReset = () => {
     Alert.alert('Erase All Data', 'Are you sure? This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
-      { 
-        text: 'Erase Data', 
+      {
+        text: 'Erase Data',
         style: 'destructive',
         onPress: async () => {
           await db.execAsync(`
@@ -130,16 +130,16 @@ export default function SettingsScreen() {
           <View style={s.row}>
             <Text style={s.label}>Appearance</Text>
             <View style={s.themeToggleRow}>
-              <Pressable 
-                style={[s.themeBtn, colorScheme === 'light' && s.themeBtnActive]} 
+              <Pressable
+                style={[s.themeBtn, colorScheme === 'light' && s.themeBtnActive]}
                 onPress={() => colorScheme !== 'light' && toggleColorScheme()}
               >
                 <MaterialIcons name="light-mode" size={16} color={colorScheme === 'light' ? '#FFFFFF' : colors.textMuted} />
                 <Text style={[s.themeBtnTxt, colorScheme === 'light' && s.themeBtnTxtActive]}>Light</Text>
               </Pressable>
               <View style={s.themeDivider} />
-              <Pressable 
-                style={[s.themeBtn, colorScheme === 'dark' && s.themeBtnActive]} 
+              <Pressable
+                style={[s.themeBtn, colorScheme === 'dark' && s.themeBtnActive]}
                 onPress={() => colorScheme !== 'dark' && toggleColorScheme()}
               >
                 <MaterialIcons name="dark-mode" size={16} color={colorScheme === 'dark' ? '#FFFFFF' : colors.textMuted} />
@@ -196,7 +196,7 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
 
-        <Text style={s.version}>Numra v1.0.0</Text>
+        <Text style={s.version}>Numra v1.2.0</Text>
       </ScrollView>
 
       <ConfirmModal
