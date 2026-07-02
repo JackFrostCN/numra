@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useColorScheme } from 'nativewind';
 
 import { Card } from '@/components/ui/card';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { getSetting, setSetting } from '@/db/queries';
@@ -14,18 +15,37 @@ export default function SettingsScreen() {
   const db = useSQLiteContext();
   const colors = useThemeColors();
   const { colorScheme, toggleColorScheme } = useColorScheme();
-  const [budget, setBudget] = useState('0');
+  const [budgetInput, setBudgetInput] = useState('0');
+  const [savedBudget, setSavedBudget] = useState('0');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [savedName, setSavedName] = useState('');
+  const [showNameSaveSuccess, setShowNameSaveSuccess] = useState(false);
 
   const loadData = useCallback(async () => {
-    const savedBudget = await getSetting(db, 'monthly_budget');
-    setBudget(savedBudget || '0');
+    const fetchedBudget = await getSetting(db, 'monthly_budget');
+    const val = fetchedBudget || '0';
+    setBudgetInput(val);
+    setSavedBudget(val);
+
+    const fetchedName = await getSetting(db, 'user_name');
+    const nameVal = fetchedName || '';
+    setNameInput(nameVal);
+    setSavedName(nameVal);
   }, [db]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
   const saveBudget = async () => {
-    await setSetting(db, 'monthly_budget', budget);
-    Alert.alert('Saved', 'Monthly budget updated successfully.');
+    await setSetting(db, 'monthly_budget', budgetInput);
+    setSavedBudget(budgetInput);
+    setShowSaveSuccess(true);
+  };
+
+  const saveName = async () => {
+    await setSetting(db, 'user_name', nameInput);
+    setSavedName(nameInput);
+    setShowNameSaveSuccess(true);
   };
 
   const handleReset = () => {
@@ -59,6 +79,25 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={s.list} contentContainerStyle={s.listContent}>
+        <Text style={s.sectionTitle}>PROFILE</Text>
+        <Card style={s.card}>
+          <View style={s.inputRow}>
+            <View style={s.inputWrapper}>
+              <MaterialIcons name="person" size={20} color={colors.textMuted} style={{ marginRight: 8 }} />
+              <TextInput
+                style={s.input}
+                value={nameInput}
+                onChangeText={setNameInput}
+                placeholder="Enter your name"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+            <Pressable onPress={saveName} style={s.saveBtn}>
+              <Text style={s.saveBtnTxt}>SAVE</Text>
+            </Pressable>
+          </View>
+        </Card>
+
         <Text style={s.sectionTitle}>GENERAL</Text>
         <Card style={s.card}>
           <View style={s.row}>
@@ -92,13 +131,17 @@ export default function SettingsScreen() {
 
         <Text style={s.sectionTitle}>MONTHLY BUDGET</Text>
         <Card style={s.card}>
+          <View style={s.currentBudgetRow}>
+            <Text style={s.currentBudgetLabel}>Current Budget</Text>
+            <Text style={s.currentBudgetValue}>LKR {savedBudget}</Text>
+          </View>
           <View style={s.inputRow}>
             <View style={s.inputWrapper}>
               <Text style={s.inputPrefix}>LKR</Text>
               <TextInput
                 style={s.input}
-                value={budget}
-                onChangeText={setBudget}
+                value={budgetInput}
+                onChangeText={setBudgetInput}
                 keyboardType="numeric"
                 placeholderTextColor={colors.textMuted}
               />
@@ -123,6 +166,24 @@ export default function SettingsScreen() {
 
         <Text style={s.version}>Numra v1.0.0</Text>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showSaveSuccess}
+        title="Saved!"
+        message="Monthly budget has been updated successfully."
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setShowSaveSuccess(false)}
+      />
+
+      <ConfirmModal
+        visible={showNameSaveSuccess}
+        title="Saved!"
+        message="Your name has been updated successfully."
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setShowNameSaveSuccess(false)}
+      />
     </View>
   );
 }
@@ -144,6 +205,9 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   themeBtnActive: { backgroundColor: colors.accent },
   themeBtnTxt: { fontSize: 13, fontFamily: Fonts.heading, color: colors.textMuted },
   themeBtnTxtActive: { color: '#FFFFFF' },
+  currentBudgetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md, paddingBottom: Spacing.md, borderBottomWidth: colors.borderWidth, borderBottomColor: colors.borderLight },
+  currentBudgetLabel: { fontSize: 16, fontFamily: Fonts.body, color: colors.textPrimary },
+  currentBudgetValue: { fontSize: 18, fontFamily: Fonts.mono, color: colors.accent },
   inputRow: { flexDirection: 'row', gap: Spacing.sm },
   inputWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgInput, borderWidth: colors.borderWidth, borderColor: colors.border, paddingHorizontal: Spacing.md, borderRadius: Radius.md },
   inputPrefix: { color: colors.textMuted, marginRight: 8, fontFamily: Fonts.body, fontSize: 16 },

@@ -32,12 +32,21 @@ import {
   getTodayISO
 } from '@/utils/helpers';
 
-function getGreeting(): string {
+function getGreeting(name: string): string {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'Good Morning';
-  if (hour >= 12 && hour < 17) return 'Good Afternoon';
-  if (hour >= 17 && hour < 21) return 'Good Evening';
-  return 'Hello Night Owl, Tracking Some Finance Shit?';
+  let greetingStr = 'Hello';
+  if (hour >= 5 && hour < 12) greetingStr = 'Good Morning';
+  else if (hour >= 12 && hour < 17) greetingStr = 'Good Afternoon';
+  else if (hour >= 17 && hour < 21) greetingStr = 'Good Evening';
+  else greetingStr = 'Hello Night Owl';
+  
+  if (name && name.trim().length > 0) {
+    if (greetingStr === 'Hello Night Owl') return `Hello Night Owl, ${name}`;
+    return `${greetingStr}, ${name}`;
+  }
+  
+  if (greetingStr === 'Hello Night Owl') return 'Hello Night Owl, Tracking Some Finance Shit?';
+  return greetingStr;
 }
 
 export default function DashboardScreen() {
@@ -53,13 +62,14 @@ export default function DashboardScreen() {
   const [activeLoansCount, setActiveLoansCount] = useState(0);
   const [totalDebt, setTotalDebt] = useState(0);
   const [budget, setBudget] = useState(0);
+  const [userName, setUserName] = useState('');
   const [bankSummary, setBankSummary] = useState<BankSummary | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [hideBalances, setHideBalances] = useState(true);
   const [chartData, setChartData] = useState<ChartData[]>([]);
 
-  const greeting = useMemo(() => getGreeting(), [refreshKey]);
+  const greeting = useMemo(() => getGreeting(userName), [refreshKey, userName]);
   const todayDate = useMemo(
     () =>
       new Date().toLocaleDateString('en-US', {
@@ -76,7 +86,7 @@ export default function DashboardScreen() {
   const loadData = useCallback(async () => {
     try {
       const todayISO = getTodayISO();
-      const [monthTotals, dayTotals, recent, bills, billPayments, loans, budgetSetting, summary, categories] = await Promise.all([
+      const [monthTotals, dayTotals, recent, bills, billPayments, loans, budgetSetting, summary, categories, nameSetting] = await Promise.all([
         getMonthlyTotals(db, currentMonth),
         getDailyTotals(db, todayISO),
         getRecentTransactions(db, 5),
@@ -86,6 +96,7 @@ export default function DashboardScreen() {
         getSetting(db, 'monthly_budget'),
         getBankSummary(db),
         getCategoryTotals(db, currentMonth),
+        getSetting(db, 'user_name'),
       ]);
 
       setTotals(monthTotals);
@@ -93,6 +104,7 @@ export default function DashboardScreen() {
       setRecentTransactions(recent);
       setActiveLoansCount(loans.length);
       setBudget(Number(budgetSetting) || 0);
+      setUserName(nameSetting || '');
       setBankSummary(summary);
 
       const chartColors = colors.chartColors || ['#7DD5D8', '#F07B6B', '#F5C242', '#2E7D5E', '#8B7EE6'];

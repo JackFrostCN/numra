@@ -11,7 +11,8 @@ interface ConfirmModalProps {
   cancelText?: string;
   isDestructive?: boolean;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  showCancel?: boolean;
 }
 
 export function ConfirmModal({
@@ -23,12 +24,13 @@ export function ConfirmModal({
   isDestructive = false,
   onConfirm,
   onCancel,
+  showCancel = true,
 }: ConfirmModalProps) {
   const colors = useThemeColors();
   const s = createStyles(colors);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel || onConfirm}>
       <View style={s.overlay}>
         <View style={s.modalContainer}>
           <View style={s.iconContainer}>
@@ -43,10 +45,14 @@ export function ConfirmModal({
           <Text style={s.message}>{message}</Text>
           
           <View style={s.actionRow}>
-            <Pressable style={[s.btn, s.cancelBtn]} onPress={onCancel}>
-              <Text style={s.cancelBtnTxt}>{cancelText}</Text>
-            </Pressable>
-            <View style={{ width: Spacing.md }} />
+            {showCancel && (
+              <>
+                <Pressable style={[s.btn, s.cancelBtn]} onPress={onCancel}>
+                  <Text style={s.cancelBtnTxt}>{cancelText}</Text>
+                </Pressable>
+                <View style={{ width: Spacing.md }} />
+              </>
+            )}
             <Pressable 
               style={[s.btn, isDestructive ? s.destructiveBtn : s.confirmBtn]} 
               onPress={onConfirm}
