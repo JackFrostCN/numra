@@ -76,8 +76,31 @@ export default function BillsScreen() {
           <EmptyState icon="receipt-long" title="NO BILLS" message="Add your recurring bills to track them" />
         ) : (
           bills.map(bill => {
-            const overdue = isCurrentMonth && isBillOverdue(bill.due_day, bill.is_paid);
-            const days = daysUntilDue(bill.due_day);
+            const [year, month] = yearMonth.split('-').map(Number);
+            const daysInViewedMonth = new Date(year, month, 0).getDate();
+            const actualDueDay = Math.min(bill.due_day, daysInViewedMonth);
+            const dueDate = new Date(year, month - 1, actualDueDay);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            const todayMidnight = new Date();
+            todayMidnight.setHours(0, 0, 0, 0);
+            
+            const timeDiff = dueDate.getTime() - todayMidnight.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            let statusText = '';
+            let isOverdue = false;
+            
+            if (bill.is_paid) {
+              statusText = 'PAID';
+            } else if (daysDiff < 0) {
+              isOverdue = true;
+              statusText = `OVERDUE BY ${Math.abs(daysDiff)} DAY${Math.abs(daysDiff) !== 1 ? 'S' : ''}`;
+            } else if (daysDiff === 0) {
+              statusText = 'DUE TODAY';
+            } else {
+              statusText = `DUE IN ${daysDiff} DAY${daysDiff !== 1 ? 'S' : ''}`;
+            }
             
             return (
               <Card 
@@ -90,8 +113,8 @@ export default function BillsScreen() {
                   <CategoryBadge category={bill.category} />
                   <View style={s.billInfo}>
                     <Text style={s.billName}>{bill.name}</Text>
-                    <Text style={[s.billDue, overdue && { color: colors.danger }]}>
-                      {bill.is_paid ? 'PAID' : overdue ? 'OVERDUE' : `DUE IN ${days} DAY${days !== 1 ? 'S' : ''}`}
+                    <Text style={[s.billDue, isOverdue && { color: colors.danger }]}>
+                      {statusText}
                     </Text>
                   </View>
                   <View style={s.billRight}>

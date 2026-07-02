@@ -6,6 +6,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { addTransaction, updateTransaction, getTransactionById, addDeposit, addWithdrawal } from '@/db/queries';
 import { CATEGORIES, getTodayISO, formatDateShort } from '@/utils/helpers';
@@ -26,6 +27,8 @@ export default function AddTransactionModal() {
   const [date, setDate] = useState(getTodayISO());
   const [description, setDescription] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -44,7 +47,8 @@ export default function AddTransactionModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount))) {
-      alert('Please enter a valid amount');
+      setErrorMessage('Please enter a valid amount.');
+      setShowError(true);
       return;
     }
 
@@ -215,6 +219,16 @@ export default function AddTransactionModal() {
         date={new Date(date)}
         onConfirm={(d) => { setDatePickerVisibility(false); setDate(d.toISOString().split('T')[0]); }}
         onCancel={() => setDatePickerVisibility(false)}
+      />
+
+      <ConfirmModal
+        visible={showError}
+        title="Invalid Entry"
+        message={errorMessage}
+        confirmText="OK"
+        showCancel={false}
+        isDestructive={true}
+        onConfirm={() => setShowError(false)}
       />
     </ScrollView>
   );

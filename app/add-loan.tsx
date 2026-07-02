@@ -6,6 +6,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { addLoan, getLoanById, updateLoan } from '@/db/queries';
 import { getTodayISO, formatDateShort } from '@/utils/helpers';
@@ -23,6 +24,8 @@ export default function AddLoanModal() {
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isDueDatePickerVisible, setDueDatePickerVisibility] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isEditing = !!id;
 
@@ -42,7 +45,8 @@ export default function AddLoanModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !personName) {
-      alert('Please enter valid details');
+      setErrorMessage('Please enter a valid name and amount.');
+      setShowError(true);
       return;
     }
 
@@ -160,6 +164,16 @@ export default function AddLoanModal() {
         date={dueDate ? new Date(dueDate) : new Date()}
         onConfirm={(d) => { setDueDatePickerVisibility(false); setDueDate(d.toISOString().split('T')[0]); }}
         onCancel={() => setDueDatePickerVisibility(false)}
+      />
+
+      <ConfirmModal
+        visible={showError}
+        title="Invalid Entry"
+        message={errorMessage}
+        confirmText="OK"
+        showCancel={false}
+        isDestructive={true}
+        onConfirm={() => setShowError(false)}
       />
     </ScrollView>
   );

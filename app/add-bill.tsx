@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
+import { Fonts, Radius, Spacing, type PaletteType } from '@/constants/theme';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { addBill, getBillById, updateBill } from '@/db/queries';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { addBill, updateBill, getBillById } from '@/db/queries';
 import { CATEGORIES } from '@/utils/helpers';
 
 export default function AddBillModal() {
@@ -18,6 +19,8 @@ export default function AddBillModal() {
   const [amount, setAmount] = useState('');
   const [dueDay, setDueDay] = useState('1');
   const [category, setCategory] = useState(CATEGORIES.expense[0]);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -34,13 +37,15 @@ export default function AddBillModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !name) {
-      alert('Please enter valid details');
+      setErrorMessage('Please enter a valid bill name and amount.');
+      setShowError(true);
       return;
     }
 
     const day = parseInt(dueDay, 10);
     if (isNaN(day) || day < 1 || day > 31) {
-      alert('Due day must be between 1 and 31');
+      setErrorMessage('The recurring day must be between 1 and 31. Please adjust it and try again.');
+      setShowError(true);
       return;
     }
 
@@ -64,7 +69,7 @@ export default function AddBillModal() {
           style={s.input}
           value={name}
           onChangeText={setName}
-          placeholder="Netflix, Rent, etc."
+          placeholder="Rent, Internet, etc."
           placeholderTextColor={colors.textMuted}
           autoFocus={!id}
         />
@@ -117,13 +122,23 @@ export default function AddBillModal() {
 
       <View style={s.saveBtnContainer}>
         <View style={s.saveBtnShadow} />
-        <Pressable 
-          style={[s.saveBtn, { backgroundColor: colors.bill }]} 
+        <Pressable
+          style={[s.saveBtn, { backgroundColor: colors.bill }]}
           onPress={handleSave}
         >
           <Text style={s.saveBtnTxt}>SAVE BILL</Text>
         </Pressable>
       </View>
+
+      <ConfirmModal
+        visible={showError}
+        title="Invalid Entry"
+        message={errorMessage}
+        confirmText="OK"
+        showCancel={false}
+        isDestructive={true}
+        onConfirm={() => setShowError(false)}
+      />
     </ScrollView>
   );
 }
