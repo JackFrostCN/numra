@@ -8,6 +8,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHaptics } from '@/hooks/useHaptics';
 import { addLoan, getLoanById, updateLoan } from '@/db/queries';
 import { getTodayISO, formatDateShort } from '@/utils/helpers';
 
@@ -15,6 +16,7 @@ export default function AddLoanModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const haptics = useHaptics();
 
   const { initialType, id } = useLocalSearchParams<{ initialType: 'lent' | 'borrowed', id?: string }>();
   const [type, setType] = useState<'lent' | 'borrowed'>(initialType || 'borrowed');
@@ -45,6 +47,7 @@ export default function AddLoanModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !personName) {
+      haptics.error();
       setErrorMessage('Please enter a valid name and amount.');
       setShowError(true);
       return;
@@ -68,7 +71,13 @@ export default function AddLoanModal() {
         source: 'bank',
       });
     }
+    haptics.success();
     router.back();
+  };
+
+  const handleTypeChange = (newType: 'lent' | 'borrowed') => {
+    haptics.selection();
+    setType(newType);
   };
 
   const s = createStyles(colors);
@@ -78,11 +87,11 @@ export default function AddLoanModal() {
       {/* Type Toggle */}
       <View style={s.typeToggleContainer}>
         <View style={s.typeToggleRow}>
-          <Pressable style={[s.typeBtn, type === 'borrowed' && s.typeBtnBorrowedActive]} onPress={() => setType('borrowed')}>
+          <Pressable style={[s.typeBtn, type === 'borrowed' && s.typeBtnBorrowedActive]} onPress={() => handleTypeChange('borrowed')}>
             <Text style={[s.typeBtnTxt, type === 'borrowed' && s.typeBtnTxtActive]}>I OWE THEM</Text>
           </Pressable>
           <View style={s.typeDivider} />
-          <Pressable style={[s.typeBtn, type === 'lent' && s.typeBtnLentActive]} onPress={() => setType('lent')}>
+          <Pressable style={[s.typeBtn, type === 'lent' && s.typeBtnLentActive]} onPress={() => handleTypeChange('lent')}>
             <Text style={[s.typeBtnTxt, type === 'lent' && s.typeBtnTxtActive]}>THEY OWE ME</Text>
           </Pressable>
         </View>

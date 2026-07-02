@@ -4,23 +4,27 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useColorScheme } from 'nativewind';
+import * as Haptics from 'expo-haptics';
 
 import { Card } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHaptics } from '@/hooks/useHaptics';
 import { getSetting, setSetting } from '@/db/queries';
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
   const colors = useThemeColors();
   const { colorScheme, toggleColorScheme } = useColorScheme();
+  const haptics = useHaptics();
   const [budgetInput, setBudgetInput] = useState('0');
   const [savedBudget, setSavedBudget] = useState('0');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savedName, setSavedName] = useState('');
   const [showNameSaveSuccess, setShowNameSaveSuccess] = useState(false);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
 
   const loadData = useCallback(async () => {
     const fetchedBudget = await getSetting(db, 'monthly_budget');
@@ -32,6 +36,9 @@ export default function SettingsScreen() {
     const nameVal = fetchedName || '';
     setNameInput(nameVal);
     setSavedName(nameVal);
+
+    const hapticsVal = await getSetting(db, 'haptics_enabled');
+    setHapticsEnabled(hapticsVal !== 'false');
   }, [db]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
@@ -40,12 +47,25 @@ export default function SettingsScreen() {
     await setSetting(db, 'monthly_budget', budgetInput);
     setSavedBudget(budgetInput);
     setShowSaveSuccess(true);
+    haptics.success();
   };
 
   const saveName = async () => {
     await setSetting(db, 'user_name', nameInput);
     setSavedName(nameInput);
     setShowNameSaveSuccess(true);
+    haptics.success();
+  };
+
+  const toggleHaptics = async () => {
+    const newVal = !hapticsEnabled;
+    setHapticsEnabled(newVal);
+    haptics.setEnabled(newVal);
+    await setSetting(db, 'haptics_enabled', newVal ? 'true' : 'false');
+    // Give a little feedback when turning on
+    if (newVal) {
+      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 50);
+    }
   };
 
   const handleReset = () => {
@@ -126,6 +146,18 @@ export default function SettingsScreen() {
                 <Text style={[s.themeBtnTxt, colorScheme === 'dark' && s.themeBtnTxtActive]}>Dark</Text>
               </Pressable>
             </View>
+          </View>
+        </Card>
+
+        <Card style={s.card}>
+          <View style={s.row}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <MaterialIcons name="vibration" size={20} color={colors.textPrimary} />
+              <Text style={s.label}>Haptic Feedback</Text>
+            </View>
+            <Pressable onPress={toggleHaptics} style={[s.toggleTrack, hapticsEnabled && s.toggleTrackActive]}>
+              <View style={[s.toggleThumb, hapticsEnabled && s.toggleThumbActive]} />
+            </Pressable>
           </View>
         </Card>
 
@@ -220,4 +252,8 @@ const createStyles = (colors: PaletteType) => StyleSheet.create({
   dangerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
   dangerText: { fontSize: 16, fontFamily: Fonts.heading, color: '#FFFFFF', letterSpacing: 1 },
   version: { textAlign: 'center', fontFamily: Fonts.mono, color: colors.textMuted, marginTop: Spacing.xl * 2, marginBottom: Spacing.xl, fontSize: 12 },
+  toggleTrack: { width: 44, height: 24, backgroundColor: colors.bgInput, borderRadius: Radius.full, justifyContent: 'center', padding: 2, borderWidth: colors.borderWidth, borderColor: colors.border },
+  toggleTrackActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  toggleThumb: { width: 18, height: 18, backgroundColor: colors.textMuted, borderRadius: Radius.full },
+  toggleThumbActive: { backgroundColor: '#FFFFFF', transform: [{ translateX: 20 }] },
 });

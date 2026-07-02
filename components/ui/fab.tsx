@@ -1,6 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface FABProps {
   onPress: () => void;
@@ -9,11 +10,15 @@ interface FABProps {
 
 export function FAB({ onPress, icon = 'add-circle' }: FABProps) {
   const colors = useThemeColors();
+  const haptics = useHaptics();
 
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={onPress}
+        onPress={() => {
+          haptics.light();
+          onPress();
+        }}
         style={({ pressed }) => [
           styles.fab,
           {

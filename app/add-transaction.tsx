@@ -8,6 +8,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Spacing, Fonts, Radius, type PaletteType } from '@/constants/theme';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHaptics } from '@/hooks/useHaptics';
 import { addTransaction, updateTransaction, getTransactionById, addDeposit, addWithdrawal } from '@/db/queries';
 import { CATEGORIES, getTodayISO, formatDateShort } from '@/utils/helpers';
 import type { TransactionType } from '@/types';
@@ -19,6 +20,7 @@ export default function AddTransactionModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const haptics = useHaptics();
 
   const [type, setType] = useState<FormMode>('expense');
   const [source, setSource] = useState<'bank' | 'hand'>('hand');
@@ -47,6 +49,7 @@ export default function AddTransactionModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount))) {
+      haptics.error();
       setErrorMessage('Please enter a valid amount.');
       setShowError(true);
       return;
@@ -71,10 +74,12 @@ export default function AddTransactionModal() {
     } else {
       await addTransaction(db, payload);
     }
+    haptics.success();
     router.back();
   };
 
   const handleTypeChange = (newType: FormMode) => {
+    haptics.selection();
     setType(newType);
     if (newType === 'expense' || newType === 'income') {
       setCategory(CATEGORIES[newType][0]);
@@ -145,12 +150,12 @@ export default function AddTransactionModal() {
         <View style={s.inputGroup}>
           <Text style={s.label}>ACCOUNT</Text>
           <View style={s.sourceToggleRow}>
-            <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => setSource('bank')}>
+            <Pressable style={[s.sourceBtn, source === 'bank' && s.sourceBtnBankActive]} onPress={() => { haptics.selection(); setSource('bank'); }}>
               <MaterialIcons name="account-balance" size={18} color={source === 'bank' ? '#FFFFFF' : colors.textMuted} />
               <Text style={[s.sourceBtnTxt, source === 'bank' && s.sourceBtnTxtActive]}>BANK</Text>
             </Pressable>
             <View style={s.sourceDivider} />
-            <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => setSource('hand')}>
+            <Pressable style={[s.sourceBtn, source === 'hand' && s.sourceBtnHandActive]} onPress={() => { haptics.selection(); setSource('hand'); }}>
               <MaterialIcons name="account-balance-wallet" size={18} color={source === 'hand' ? '#FFFFFF' : colors.textMuted} />
               <Text style={[s.sourceBtnTxt, source === 'hand' && s.sourceBtnTxtActive]}>HAND CASH</Text>
             </Pressable>

@@ -7,6 +7,7 @@ import { Fonts, Radius, Spacing, type PaletteType } from '@/constants/theme';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { addBill, getBillById, updateBill } from '@/db/queries';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHaptics } from '@/hooks/useHaptics';
 import { CATEGORIES } from '@/utils/helpers';
 
 export default function AddBillModal() {
@@ -14,6 +15,7 @@ export default function AddBillModal() {
   const db = useSQLiteContext();
   const router = useRouter();
   const colors = useThemeColors();
+  const haptics = useHaptics();
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -37,6 +39,7 @@ export default function AddBillModal() {
 
   const handleSave = async () => {
     if (!amount || isNaN(Number(amount)) || !name) {
+      haptics.error();
       setErrorMessage('Please enter a valid bill name and amount.');
       setShowError(true);
       return;
@@ -44,6 +47,7 @@ export default function AddBillModal() {
 
     const day = parseInt(dueDay, 10);
     if (isNaN(day) || day < 1 || day > 31) {
+      haptics.error();
       setErrorMessage('The recurring day must be between 1 and 31. Please adjust it and try again.');
       setShowError(true);
       return;
@@ -56,6 +60,7 @@ export default function AddBillModal() {
     } else {
       await addBill(db, payload);
     }
+    haptics.success();
     router.back();
   };
 
